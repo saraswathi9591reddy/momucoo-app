@@ -1,0 +1,221 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
+
+import '../core/models/models.dart';
+import '../core/storage.dart';
+import '../core/theme.dart';
+import '../router.dart';
+import '../widgets/content_card.dart';
+import '../widgets/page_layout.dart';
+import 'batch1/form_bits.dart';
+
+/// Port of frontend/src/pages/Reports.jsx (route /reports).
+/// Web "Print Report" (window.print) becomes "Copy Report": the text summary goes to the clipboard.
+class ReportsScreen extends StatelessWidget {
+  const ReportsScreen({super.key});
+
+  static const disclaimer =
+      'This online summary supports early pregnancy health monitoring. Please share it with your prenatal care provider. Seek emergency help for severe breathlessness, fainting, chest pain, or heavy bleeding.';
+
+  @override
+  Widget build(BuildContext context) {
+    final d = ReportData.load(DateTime.now());
+
+    return PageLayout(
+      title: 'Overall Patient Report',
+      eyebrow: 'DIGITAL CHECKUP SUMMARY',
+      activePath: Routes.reports,
+      description: 'Your complete online checkup summary, ready to review or print.',
+      children: [
+        Wrap(spacing: 10, runSpacing: 10, children: [
+          OutlinedButton.icon(
+            icon: const Icon(Icons.copy_outlined),
+            label: const Text('Copy Report'),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: d.toText()));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report summary copied to clipboard.')));
+              }
+            },
+          ),
+          ElevatedButton(onPressed: () => context.go(Routes.healthCheck), child: const Text('＋ Start New Checkup')),
+        ]),
+        ContentCard(
+          kicker: 'MOMUCOO • DIGITAL MATERNITY CARE',
+          title: 'Patient Checkup Report',
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Early pregnancy anemia screening summary', style: TextStyle(color: AppColors.muted)),
+            const SizedBox(height: 12),
+            _Value('REPORT DATE', d.generated, sub: 'Online checkup record'),
+            const Divider(height: 24),
+            _Value('Patient name', d.name),
+            _Value('Pregnancy week', d.weekText),
+            _Value('Report status', d.statusText, color: d.aiDone ? AppColors.success : AppColors.warning),
+          ]),
+        ),
+        _Section('01 • Health Check & Symptoms', [for (final e in d.healthRows) _Value(e.$1, e.$2)]),
+        _Section('02 • CBC Blood Report', [for (final e in d.cbcRows) _Value(e.$1, e.$2)]),
+        _Section('03 • Pregnancy Scan Report', [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(d.scanUploaded ? '🖥️' : '📎', style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(d.scanTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(d.scanDetail, style: const TextStyle(color: AppColors.muted)),
+              ]),
+            ),
+            StatusPill(d.scanUploaded ? 'Available' : 'Optional',
+                color: d.scanUploaded ? AppColors.success : AppColors.warning,
+                background: d.scanUploaded ? AppColors.successBg : AppColors.peachBg),
+          ]),
+        ]),
+        _Section('04 • AI Anemia Analysis', [
+          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text.rich(TextSpan(children: [
+              TextSpan(text: d.scoreText, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: AppColors.primary)),
+              const TextSpan(text: '/100', style: TextStyle(color: AppColors.muted)),
+            ])),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('PRELIMINARY SCREENING RESULT',
+                    style: TextStyle(fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                Text(d.riskText, style: Theme.of(context).textTheme.titleLarge),
+                Text(d.aiDetail, style: const TextStyle(color: AppColors.muted)),
+              ]),
+            ),
+          ]),
+        ]),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(color: AppColors.peachBg, borderRadius: BorderRadius.circular(12)),
+          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Clinical note', style: TextStyle(fontWeight: FontWeight.w700)),
+            SizedBox(height: 4),
+            Text(disclaimer),
+          ]),
+        ),
+        const Text('Generated by Momucoo • Keep this report with your maternity records',
+            textAlign: TextAlign.center, style: TextStyle(color: AppColors.grey, fontSize: 12)),
+      ],
+    );
+  }
+}
+
+/// All report values, derived exactly as Reports.jsx does.
+class ReportData {
+  ReportData._(this.generated, this.name, this.pregnancy, this.cbc, this.scan, this.ai);
+  final String generated, name;
+  final Map<String, dynamic>? pregnancy, cbc, scan, ai;
+
+  factory ReportData.load(DateTime now) {
+    final s = AppStorage.instance;
+    final profile = s.readMap(StorageKeys.profile);
+    return ReportData._(
+      formatReportDate(now),
+      profile == null ? 'Patient' : '${profile['name'] ?? ''}',
+      s.readMap(StorageKeys.pregnancyData),
+      s.readMap(StorageKeys.cbcData),
+      s.readMap(StorageKeys.scanData),
+      s.readMap(StorageKeys.aiResult),
+    );
+  }
+
+  dynamic get _week => pregnancy?['week'];
+  bool get aiDone => ai != null;
+  bool get scanUploaded => jsTruthy(scan?['uploaded']);
+  String get weekText => jsTruthy(_week) ? '$_week' : 'Not entered';
+  String get statusText => aiDone ? 'Analysis complete' : 'In progress';
+
+  List<(String, String)> get healthRows {
+    final symptoms = (pregnancy?['symptoms'] as List?) ?? const [];
+    return [
+      ('Chat check completed', pregnancy != null ? 'Yes' : 'Not completed'),
+      ('Symptoms reported', symptoms.isNotEmpty ? symptoms.join(', ') : 'None recorded'),
+      ('Pregnancy stage', jsTruthy(_week) ? 'Week $_week of pregnancy' : 'Not entered'),
+    ];
+  }
+
+  String _cbc(String k, [String unit = '']) {
+    final v = cbc?[k];
+    return jsTruthy(v) ? '$v$unit' : 'Not submitted';
+  }
+
+  List<(String, String)> get cbcRows => [
+        ('Hemoglobin', _cbc('hb', ' g/dL')),
+        ('RBC', _cbc('rbc')),
+        ('MCV', _cbc('mcv', ' fL')),
+        ('MCH', _cbc('mch', ' pg')),
+        ('MCHC', _cbc('mchc')),
+        ('Hematocrit', _cbc('hematocrit', '%')),
+        ('RDW', _cbc('rdw', '%')),
+      ];
+
+  String get scanTitle => scanUploaded ? '${scan?['name'] ?? ''}' : 'No scan report uploaded';
+  String get scanDetail => scanUploaded
+      ? 'Scan report attached for clinical review.'
+      : 'Optional: upload an ultrasound or pregnancy scan when available.';
+
+  String get scoreText => ai?['score'] == null ? '--' : '${ai!['score']}';
+  String get riskText => jsTruthy(ai?['risk']) ? '${ai!['risk']} Risk' : 'Analysis pending';
+  String get aiDetail => aiDone
+      ? 'This result combines the available symptoms and CBC information. It is not a medical diagnosis.'
+      : 'Complete the CBC report to generate an AI screening result.';
+
+  String toText() => [
+        'MOMUCOO • DIGITAL MATERNITY CARE',
+        'Patient Checkup Report',
+        'Report date: $generated',
+        'Patient name: $name',
+        'Pregnancy week: $weekText',
+        'Report status: $statusText',
+        '',
+        '01 • Health Check & Symptoms',
+        for (final r in healthRows) '${r.$1}: ${r.$2}',
+        '',
+        '02 • CBC Blood Report',
+        for (final r in cbcRows) '${r.$1}: ${r.$2}',
+        '',
+        '03 • Pregnancy Scan Report',
+        '$scanTitle (${scanUploaded ? 'Available' : 'Optional'})',
+        '',
+        '04 • AI Anemia Analysis',
+        'Score: $scoreText/100 • $riskText',
+        '',
+        'Clinical note: ${ReportsScreen.disclaimer}',
+      ].join('\n');
+}
+
+class _Section extends StatelessWidget {
+  const _Section(this.title, this.children);
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => ContentCard(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.primary)),
+          const SizedBox(height: 10),
+          ...children,
+        ]),
+      );
+}
+
+class _Value extends StatelessWidget {
+  const _Value(this.label, this.value, {this.sub, this.color});
+  final String label, value;
+  final String? sub;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
+          Text(value, style: TextStyle(fontWeight: FontWeight.w700, color: color)),
+          if (sub != null) Text(sub!, style: const TextStyle(color: AppColors.grey, fontSize: 12)),
+        ]),
+      );
+}
