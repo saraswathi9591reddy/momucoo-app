@@ -16,11 +16,11 @@ class PageLayout extends StatelessWidget {
 
   static const mainMenu = [
     (Icons.home_outlined, 'Dashboard', Routes.dashboard),
-    (Icons.person_outline, 'Profile', Routes.profile),
     (Icons.favorite_border, 'Health', Routes.healthCheck),
     (Icons.bloodtype_outlined, 'CBC', Routes.cbcAnalysis),
     (Icons.smart_toy_outlined, 'AI', Routes.aiAnalysis),
     (Icons.description_outlined, 'Reports', Routes.reports),
+    (Icons.person_outline, 'Profile', Routes.profile),
   ];
 
   @override

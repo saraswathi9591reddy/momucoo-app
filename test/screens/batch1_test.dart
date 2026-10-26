@@ -113,8 +113,11 @@ void main() {
   testWidgets('Profile edit saves profile and pregnancy week', (tester) async {
     await pumpAt(tester, Routes.profile, {
       'momucooProfile': jsonEncode({'name': 'Priya', 'pregnancyStatus': 'Pregnant'}),
+      'momucooAccount': jsonEncode({'name': 'Priya', 'email': 'priya@example.com', 'password': 'secret1'}),
       'pregnancyData': jsonEncode({'week': 5, 'symptoms': ['fatigue']}),
     });
+    expect(find.text('PATIENT ACCOUNT'), findsNothing);
+    expect(find.text('priya@example.com'), findsOneWidget);
     await tester.tap(find.text('✎ Edit Profile'));
     await tester.pumpAndSettle();
     final week = find.byKey(const ValueKey('profile-pregnancyWeek'));

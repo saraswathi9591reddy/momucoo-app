@@ -118,7 +118,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
     _set('dueDate', v);
   }
 
-  Widget _card(String title, List<(String, String, String, String)> items) => ContentCard(
+  Widget _card(String title, List<(String, String, String, String)> items, {String? loginEmail}) => ContentCard(
         title: title,
         child: Column(
           children: [
@@ -150,6 +150,20 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                         ],
                       ),
               ),
+            if (loginEmail != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Expanded(child: Text('Login Email', style: TextStyle(color: AppColors.muted))),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(loginEmail, textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       );
@@ -157,6 +171,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final p = _profile;
+    final loginEmail = AppStorage.instance.account?.email ?? 'Not available';
     return PageLayout(
       title: 'My Profile',
       eyebrow: 'PATIENT PROFILE',
@@ -177,10 +192,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('PATIENT ACCOUNT',
-                        style: TextStyle(fontSize: 12, letterSpacing: 1.2, fontWeight: FontWeight.w700, color: AppColors.accent)),
                     Text(p.name, style: Theme.of(context).textTheme.titleLarge),
-                    const Text('ananya.sharma@example.com', style: TextStyle(color: AppColors.muted)),
                   ]),
                 ),
               ]),
@@ -202,7 +214,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           ('name', 'Full Name', p.name, 'text'),
           ('age', 'Age', p.age, 'text'),
           ('gender', 'Gender', p.gender, 'text'),
-        ]),
+        ], loginEmail: loginEmail),
         _card('🩸 Blood Group', [('bloodGroup', 'Blood Group', p.bloodGroup, 'text')]),
         _card('🤰 Pregnancy Details', [
           ('pregnancyStatus', 'Pregnancy Status', p.pregnancyStatus.isEmpty ? 'Pregnant' : p.pregnancyStatus, 'text'),

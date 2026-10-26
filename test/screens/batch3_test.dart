@@ -9,6 +9,7 @@ import 'package:momucoo/screens/doctor_dashboard_screen.dart';
 import 'package:momucoo/screens/doctor_patients_screen.dart';
 import 'package:momucoo/screens/doctor_review_screen.dart';
 import 'package:momucoo/screens/find_doctor_screen.dart';
+import 'package:momucoo/screens/patient_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> pumpAt(WidgetTester tester, String initial) async {
@@ -22,6 +23,7 @@ Future<void> pumpAt(WidgetTester tester, String initial) async {
     GoRoute(path: Routes.doctorPatients, builder: (_, _) => const DoctorPatientsScreen()),
     GoRoute(path: Routes.doctorReview, builder: (_, _) => const DoctorReviewScreen()),
     GoRoute(path: Routes.findDoctor, builder: (_, _) => const FindDoctorScreen()),
+    GoRoute(path: Routes.profile, builder: (_, _) => const PatientProfileScreen()),
     GoRoute(path: Routes.appointments, builder: (_, _) => const AppointmentsScreen()),
     GoRoute(path: Routes.consultation, builder: (_, _) => const ConsultationScreen()),
   ]);
@@ -41,6 +43,16 @@ Future<void> tapText(WidgetTester tester, String text) async {
 }
 
 void main() {
+  testWidgets('main navigation puts Profile after Reports', (t) async {
+    await pumpAt(t, Routes.profile);
+    final nav = t.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(
+      nav.destinations.map((destination) => (destination as NavigationDestination).label),
+      ['Dashboard', 'Health', 'CBC', 'AI', 'Reports', 'Profile'],
+    );
+    expect(nav.selectedIndex, 5);
+  });
+
   testWidgets('doctor dashboard stats and navigation', (t) async {
     await pumpAt(t, Routes.doctorDashboard);
     expect(find.text('24'), findsOneWidget);
