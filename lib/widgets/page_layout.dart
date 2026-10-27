@@ -66,7 +66,21 @@ class MomucooAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) => AppBar(
-        title: const Text('Momucoo', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              width: 28,
+              height: 28,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Text('🩸', style: TextStyle(fontSize: 20)),
+            ),
+            const SizedBox(width: 8),
+            const Text('Momucoo', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
+          ],
+        ),
         actions: [
           ValueListenableBuilder<int>(
             valueListenable: AppStorage.profileChanged,
@@ -102,7 +116,17 @@ class MomucooDrawer extends StatelessWidget {
       child: SafeArea(
         child: ListView(
           children: [
-            const ListTile(title: Text('Momucoo', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 20))),
+            ListTile(
+              leading: Image.asset(
+                'assets/images/logo.png',
+                width: 30,
+                height: 30,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Text('🩸', style: TextStyle(fontSize: 22)),
+              ),
+              title: const Text('Momucoo', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 20)),
+            ),
             for (final m in PageLayout.mainMenu) ListTile(leading: Icon(m.$1), title: Text(m.$2), onTap: () => go(m.$3)),
             const Divider(),
             ListTile(leading: const Icon(Icons.menu_book_outlined), title: const Text('Knowledge Hub'), onTap: () => go(Routes.knowledgeHub)),

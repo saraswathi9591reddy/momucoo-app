@@ -70,8 +70,17 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
+                            Image.asset(
+                              'assets/images/logo.png',
+                              width: 28,
+                              height: 28,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Text('🩸', style: TextStyle(fontSize: 20)),
+                            ),
+                            const SizedBox(width: 8),
                             const Text(
-                              '🩸 Momucoo',
+                              'Momucoo',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,

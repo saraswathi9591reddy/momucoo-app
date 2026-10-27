@@ -2,13 +2,31 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme.dart';
 
-/// Brand line used on auth pages ("🩸 Momucoo").
+/// Brand line used on auth pages (Momucoo logo + title).
 class BrandMark extends StatelessWidget {
-  const BrandMark({super.key});
+  const BrandMark({super.key, this.size = 32});
+  final double size;
 
   @override
-  Widget build(BuildContext context) => const Text('🩸 Momucoo',
-      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primary));
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset(
+            'assets/images/logo.png',
+            width: size,
+            height: size,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) =>
+                Text('🩸', style: TextStyle(fontSize: size * 0.75)),
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'Momucoo',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primary),
+          ),
+        ],
+      );
 }
 
 /// Label above a text field, as the web forms do.
