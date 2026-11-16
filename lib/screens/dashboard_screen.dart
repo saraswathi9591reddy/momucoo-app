@@ -37,7 +37,7 @@ class DashboardScreen extends StatelessWidget {
 
     return PageLayout(
       title: 'Dashboard',
-      eyebrow: 'ANEMIAAI • PATIENT PORTAL',
+      eyebrow: 'MOMUCOO • PATIENT PORTAL',
       description: 'Your pregnancy anemia screening overview',
       activePath: Routes.dashboard,
       children: [

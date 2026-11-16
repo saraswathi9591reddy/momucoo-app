@@ -146,7 +146,7 @@ class MomucooDrawer extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       const Text(
-                        'AnemiaAI',
+                        'Momucoo',
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
