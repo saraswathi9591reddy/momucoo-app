@@ -115,23 +115,81 @@ class MomucooDrawer extends StatelessWidget {
     return Drawer(
       child: SafeArea(
         child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            ListTile(
-              leading: Image.asset(
-                'assets/images/logo.png',
-                width: 30,
-                height: 30,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) =>
-                    const Text('🩸', style: TextStyle(fontSize: 22)),
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.accent],
+                ),
               ),
-              title: const Text('Momucoo', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 20)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 44,
+                          height: 44,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Text('🩸', style: TextStyle(fontSize: 32)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'AnemiaAI',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          fontSize: 22,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Pregnancy Care & Screening',
+                    style: TextStyle(color: Colors.white70, fontSize: 13),
+                  ),
+                ],
+              ),
             ),
-            for (final m in PageLayout.mainMenu) ListTile(leading: Icon(m.$1), title: Text(m.$2), onTap: () => go(m.$3)),
+            const Padding(
+              padding: EdgeInsets.only(left: 16, top: 8, bottom: 4),
+              child: Text(
+                'MAIN MENU',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.muted, letterSpacing: 1.2),
+              ),
+            ),
+            ListTile(leading: const Icon(Icons.dashboard_outlined), title: const Text('Dashboard'), onTap: () => go(Routes.dashboard)),
+            ListTile(leading: const Icon(Icons.person_outline), title: const Text('My Profile'), onTap: () => go(Routes.profile)),
+            ListTile(leading: const Icon(Icons.favorite_border), title: const Text('Symptom Check'), onTap: () => go(Routes.healthCheck)),
+            ListTile(leading: const Icon(Icons.bloodtype_outlined), title: const Text('CBC Analysis'), onTap: () => go(Routes.cbcAnalysis)),
+            ListTile(leading: const Icon(Icons.auto_graph_outlined), title: const Text('Screening Results'), onTap: () => go(Routes.aiAnalysis)),
+            ListTile(leading: const Icon(Icons.description_outlined), title: const Text('Reports & History'), onTap: () => go(Routes.reports)),
+            ListTile(leading: const Icon(Icons.restaurant_outlined), title: const Text('Nutrition Guide'), onTap: () => go(Routes.carePlan)),
             const Divider(),
+            const Padding(
+              padding: EdgeInsets.only(left: 16, top: 4, bottom: 4),
+              child: Text(
+                'SUPPORT & TOOLS',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.muted, letterSpacing: 1.2),
+              ),
+            ),
             ListTile(leading: const Icon(Icons.menu_book_outlined), title: const Text('Knowledge Hub'), onTap: () => go(Routes.knowledgeHub)),
+            ListTile(leading: const Icon(Icons.alarm_outlined), title: const Text('Reminders'), onTap: () => go(Routes.reminders)),
             ListTile(leading: const Icon(Icons.chat_bubble_outline), title: const Text('Feedback'), onTap: () => go(Routes.feedback)),
-            ListTile(leading: const Icon(Icons.sos_outlined), title: const Text('Emergency Help'), onTap: () => go(Routes.emergency)),
+            ListTile(leading: const Icon(Icons.sos_outlined, color: AppColors.primary), title: const Text('Emergency Help', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), onTap: () => go(Routes.emergency)),
+            const Divider(),
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
