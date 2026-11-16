@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../core/models/models.dart';
+import '../core/risk_engine.dart';
 import '../core/storage.dart';
 import '../core/theme.dart';
 import '../router.dart';
@@ -13,7 +14,7 @@ import '../widgets/primary_button.dart';
 import 'batch2/cbc_parser.dart';
 import 'batch2/ocr.dart';
 
-/// Port of frontend/src/pages/CBCAnalysis.jsx. OCR via image_picker + ML Kit.
+/// Upgraded CBC Analysis Screen with instant inline Risk Level output matching web app.
 class CBCAnalysisScreen extends StatefulWidget {
   const CBCAnalysisScreen({super.key, this.ocr = const MlKitOcrService()});
   final OcrService ocr;
@@ -37,6 +38,7 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
   String _cbcFileName = '', _scanName = '', _reportStatus = '', _scanStatus = '';
   Map<String, String> _scanData = {};
   bool _reading = false;
+  RiskResult? _inlineResult;
 
   @override
   void dispose() {
@@ -70,6 +72,7 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
     setState(() {
       _cbcFileName = img?.name ?? '';
       _reportStatus = '';
+      _inlineResult = null;
       for (final c in _ctrl.values) {
         c.clear();
       }
@@ -88,7 +91,7 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
       setState(() {
         values.forEach((k, v) => _ctrl[k]?.text = v);
         _reportStatus = values.isNotEmpty
-            ? 'Copied ${values.length} value(s) from the CBC report. Please review and edit them before analyzing.'
+            ? 'Copied ${values.length} value(s) from report. Review below and tap "Analyze My CBC".'
             : 'No CBC values found. Upload a blood report containing Hb, RBC, MCV, MCH, MCHC, HCT, and RDW.';
       });
     } catch (_) {
@@ -107,6 +110,7 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
       _scanName = img?.name ?? '';
       _scanData = {};
       _scanStatus = '';
+      _inlineResult = null;
     });
     if (img == null) return;
     setState(() {
@@ -120,11 +124,11 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
         _scanData = values;
         _scanStatus = values.isNotEmpty
             ? 'Pregnancy scan measurements recognized.'
-            : 'Scan uploaded, but no readable measurements were found. The original scan is still saved.';
+            : 'Scan uploaded, but no readable measurements were found.';
       });
     } catch (_) {
       if (mounted) {
-        setState(() => _scanStatus = 'Scan uploaded, but its text could not be read. The original scan is still saved.');
+        setState(() => _scanStatus = 'Scan uploaded, but its text could not be read.');
       }
     } finally {
       if (mounted) setState(() => _reading = false);
@@ -133,17 +137,27 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
 
   Future<void> _analyze() async {
     final week = getGestationalWeek(_scanData['gestationalAge']);
+    final cbcMap = {for (final e in _ctrl.entries) e.key: e.value.text};
     final s = AppStorage.instance;
-    await s.saveCbcData(CbcData({for (final e in _ctrl.entries) e.key: e.value.text}));
+    await s.saveCbcData(CbcData(cbcMap));
     await s.saveScanData(ScanData(
       name: _scanName,
       uploaded: _scanName.isNotEmpty,
       values: Map<String, dynamic>.of(_scanData),
       uploadedAt: DateTime.now().toUtc().toIso8601String(),
     ));
-    // Web: `week: gestationalWeek || ""` (0 is falsy).
     await s.savePregnancyData(PregnancyData(week: week == 0 ? '' : week, symptoms: []));
-    if (mounted) context.go(Routes.aiAnalysis);
+
+    // Evaluate risk directly
+    final evaluated = RiskEngine.evaluate(
+      cbc: cbcMap,
+      pregnancy: {'week': week == 0 ? '' : week, 'symptoms': []},
+      scan: Map<String, dynamic>.of(_scanData),
+    );
+
+    setState(() {
+      _inlineResult = evaluated;
+    });
   }
 
   Widget _upload({
@@ -191,16 +205,16 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
 
   @override
   Widget build(BuildContext context) => PageLayout(
-        title: 'CBC Report Analysis',
-        eyebrow: 'LAB ANALYSIS',
+        title: 'CBC & Pregnancy Analysis',
+        eyebrow: 'LAB SCREENING',
         activePath: Routes.cbcAnalysis,
-        description: 'Enter the values from your Complete Blood Count report for a preliminary screening review.',
+        description: 'Upload your blood report and scan to directly view your preliminary anemia risk level.',
         children: [
           ContentCard(
             kicker: 'REPORT VALUES',
             title: 'Complete Blood Count',
             child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              const Text('Use the units printed on your report.', style: TextStyle(color: AppColors.muted)),
+              const Text('Enter or review values from your laboratory report. Hb is required.', style: TextStyle(color: AppColors.muted)),
               const SizedBox(height: 12),
               for (final f in _fields)
                 Padding(
@@ -211,14 +225,18 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
                     textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(labelText: f.$2, hintText: 'From CBC report', suffixText: f.$3),
+                    decoration: InputDecoration(
+                      labelText: f.$2,
+                      hintText: 'From CBC report',
+                      suffixText: f.$3,
+                    ),
                   ),
                 ),
               _upload(
                 key: const Key('cbc-upload'),
                 icon: Icons.description_outlined,
                 title: 'CBC Report Upload',
-                text: 'Add your blood report if you have a digital copy.',
+                text: 'Add your blood report image for auto-reading.',
                 name: _cbcFileName,
                 status: _reportStatus,
                 onTap: _readCbcReport,
@@ -235,9 +253,141 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                 onTap: _readScanReport,
               ),
               const SizedBox(height: 16),
-              PrimaryButton(label: 'Analyze My CBC →', loading: _reading, onPressed: _analyze),
+              PrimaryButton(
+                label: '⚡ Analyze & Show Risk Level',
+                loading: _reading,
+                onPressed: _analyze,
+              ),
             ]),
           ),
+
+          // =========================================================================
+          // INLINE RISK LEVEL RESULT CARD (MATCHING WEB APP)
+          // =========================================================================
+          if (_inlineResult != null) ...[
+            const SizedBox(height: 16),
+            ContentCard(
+              kicker: 'SCREENING OUTPUT (WHO 2011)',
+              title: 'Anemia Risk Assessment Result',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _inlineResult!.risk == 'Low'
+                          ? AppColors.successBg
+                          : _inlineResult!.risk == 'Moderate'
+                              ? AppColors.peachBg
+                              : const Color(0xFFFDE8E8),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: _inlineResult!.risk == 'Low'
+                            ? AppColors.success
+                            : _inlineResult!.risk == 'Moderate'
+                                ? Colors.orange
+                                : AppColors.primary,
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                '${_inlineResult!.risk.toUpperCase()} RISK',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 12,
+                                  color: _inlineResult!.risk == 'Low'
+                                      ? AppColors.success
+                                      : _inlineResult!.risk == 'Moderate'
+                                          ? Colors.orange.shade800
+                                          : AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              'Score: ${_inlineResult!.score}/100',
+                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          _inlineResult!.anemiaLikely ? 'Anemia Pattern Detected' : 'No Anemia Detected',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.ink),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Based on WHO 2011 pregnancy threshold guidelines (Hb: ${_ctrl['hb']?.text.isNotEmpty == true ? _ctrl['hb']!.text : '--'} g/dL).',
+                          style: const TextStyle(color: AppColors.inkSoft, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Factors
+                  if (_inlineResult!.factors.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    const Text('Identified Indicators:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    for (final f in _inlineResult!.factors)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('• ', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                            Expanded(child: Text(f, style: const TextStyle(fontSize: 13, color: AppColors.inkSoft))),
+                          ],
+                        ),
+                      ),
+                  ],
+
+                  // Recommendations
+                  if (_inlineResult!.recommendations.isNotEmpty) ...[
+                    const SizedBox(height: 14),
+                    const Text('Clinical Recommendations:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    for (final r in _inlineResult!.recommendations)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.check_circle_outline, size: 16, color: AppColors.primary),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(r, style: const TextStyle(fontSize: 13, color: AppColors.ink))),
+                          ],
+                        ),
+                      ),
+                  ],
+
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => context.go(Routes.aiAnalysis),
+                    icon: const Icon(Icons.analytics_outlined),
+                    label: const Text('View Full Screen Analysis Report →'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.all(14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       );
 }
