@@ -22,6 +22,7 @@ class EmergencyHelpScreen extends StatelessWidget {
   ];
 
   Future<void> _call(BuildContext context, String number) async {
+    final messenger = ScaffoldMessenger.of(context);
     final uri = Uri.parse('tel:$number');
     try {
       if (await canLaunchUrl(uri)) {
@@ -29,12 +30,10 @@ class EmergencyHelpScreen extends StatelessWidget {
         return;
       }
     } catch (_) {}
-    if (context.mounted) {
-      await Clipboard.setData(ClipboardData(text: number));
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Dial $number now. Number copied to clipboard.')),
-      );
-    }
+    await Clipboard.setData(ClipboardData(text: number));
+    messenger.showSnackBar(
+      SnackBar(content: Text('Dial $number now. Number copied to clipboard.')),
+    );
   }
 
   @override

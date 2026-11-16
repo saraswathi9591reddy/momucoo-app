@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 import '../core/models/models.dart';
 import '../core/storage.dart';
@@ -25,7 +24,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
   final _historyCtrl = TextEditingController();
 
   String _name = 'saraswathi reddy';
-  String _email = 'saraswathi12@gmail.com';
+  final String _email = 'saraswathi12@gmail.com';
   String _bloodGroup = 'O+';
   bool _currentlyPregnant = true;
   bool _saved = false;

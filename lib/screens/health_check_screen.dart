@@ -125,11 +125,12 @@ class _HealthCheckScreenState extends State<HealthCheckScreen> {
         .map((e) => e.key)
         .toList();
 
-    await s.savePregnancyData({
-      'week': _weekCtrl.text.trim(),
-      'symptoms': yesSymptoms,
-      'emergencyFlag': _hasEmergency,
-    });
+    await s.savePregnancyData(
+      PregnancyData(
+        week: _weekCtrl.text.trim(),
+        symptoms: yesSymptoms,
+      ),
+    );
 
     if (mounted) {
       context.go(Routes.aiAnalysis);
