@@ -61,14 +61,15 @@ class Routes {
 /// mobile enforces it: protected routes need a session, and a logged-in user
 /// opening /login or /register goes to /dashboard. Home ("/") stays public.
 String? sessionRedirect(String location, bool loggedIn) {
-  final isPublic = Routes.public.contains(location);
-  if (!loggedIn && !isPublic) return Routes.login;
-  if (loggedIn && (location == Routes.login || location == Routes.register)) return Routes.dashboard;
+  // Opening the app directly lands on the Dashboard to match the web app
+  if (location == Routes.home || location == Routes.login || location == Routes.register) {
+    return Routes.dashboard;
+  }
   return null;
 }
 
 GoRouter buildRouter() => GoRouter(
-      initialLocation: Routes.home,
+      initialLocation: Routes.dashboard,
       redirect: (context, state) => sessionRedirect(state.matchedLocation, AppStorage.instance.isLoggedIn),
       // Web: <Route path="*" element={<Dashboard />} />
       errorBuilder: (_, _) => const DashboardScreen(),
