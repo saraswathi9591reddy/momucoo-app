@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/localization.dart';
 import '../core/theme.dart';
 import '../router.dart';
 import '../widgets/page_layout.dart';
@@ -15,6 +16,10 @@ class KnowledgeHubTopic {
   final List<String> keyPoints;
   final String fullText;
 
+  // Localized title & summary
+  final Map<String, String>? localizedTitle;
+  final Map<String, String>? localizedSummary;
+
   const KnowledgeHubTopic({
     required this.id,
     required this.category,
@@ -25,6 +30,8 @@ class KnowledgeHubTopic {
     required this.summary,
     required this.keyPoints,
     required this.fullText,
+    this.localizedTitle,
+    this.localizedSummary,
   });
 }
 
@@ -39,15 +46,6 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
   String _selectedCategory = 'All';
   final Set<String> _expandedIds = {};
 
-  static const List<String> categories = [
-    'All',
-    'Basics',
-    'Precautions',
-    'Diet',
-    'Tests',
-    'Checkup',
-  ];
-
   static const List<KnowledgeHubTopic> topics = [
     KnowledgeHubTopic(
       id: 'anemia-basics',
@@ -58,6 +56,18 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
       title: 'Anemia During Pregnancy: What It Means',
       summary:
           'During pregnancy, your body produces more blood to support your baby. When iron levels are low, oxygen delivery drops.',
+      localizedTitle: {
+        'kn': 'ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ರಕ್ತಹೀನತೆ: ಇದರ ಅರ್ಥವೇನು?',
+        'te': 'గర్భధారణ సమయంలో రక్తహీనత: దీని అర్థం ఏమిటి?',
+        'hi': 'गर्भावस्था में एनीमिया: इसका क्या मतलब है?',
+        'ta': 'கர்ப்ப காலத்தில் இரத்த சோகை: இதன் பொருள் என்ன?',
+      },
+      localizedSummary: {
+        'kn': 'ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ನಿಮ್ಮ ದೇಹವು ಮಗುವಿಗೆ ಪೂರಕವಾಗಿ 50% ಹೆಚ್ಚು ರಕ್ತ ಉತ್ಪಾದಿಸುತ್ತದೆ. ಕಬ್ಬಿಣದ ಕೊರತೆಯಾದರೆ ಆಮ್ಲಜನಕ ಸರಬರಾಜು ಕಡಿಮೆಯಾಗುತ್ತದೆ.',
+        'te': 'గర్భధారణ సమయంలో మీ శరీరం శిశువుకు మద్దతుగా 50% ఎక్కువ రక్తాన్ని ఉత్పత్తి చేస్తుంది. ఇనుము లోపిస్తే ఆక్సిజన్ తగ్గుతుంది.',
+        'hi': 'गर्भावस्था में आपका शरीर बच्चे के लिए 50% अधिक रक्त का उत्पादन करता है। आयरन की कमी से ऑक्सीजन की आपूर्ति कम हो जाती है।',
+        'ta': 'கர்ப்ப காலத்தில் உங்கள் உடல் குழந்தைக்கு ஆதரவாக 50% அதிக இரத்தத்தை உற்பத்தி செய்கிறது. இரும்புச்சத்து குறைந்தால் ஆக்ஸிஜன் அளவு குறையும்.',
+      },
       keyPoints: [
         'Blood volume increases by ~40–50% during pregnancy',
         'Iron requirements jump from 18 mg to 27 mg daily',
@@ -76,6 +86,18 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
       title: 'Warning Signs & When to Call Your Doctor',
       summary:
           'Recognize typical pregnancy tiredness versus symptoms that warrant urgent clinical attention.',
+      localizedTitle: {
+        'kn': 'ಎಚ್ಚರಿಕೆ ಚಿಹ್ನೆಗಳು & ವೈದ್ಯರನ್ನು ಯಾವಾಗ ಕರೆಯಬೇಕು',
+        'te': 'హెచ్చరిక సంకేతాలు & వైద్యుడిని ఎప్పుడు సంప్రదించాలి',
+        'hi': 'चेतावनी संकेत और अपने डॉक्टर को कब कॉल करें',
+        'ta': 'எச்சரிக்கை அறிகுறிகள் & உங்கள் மருத்துவரை எப்போது அழைக்க வேண்டும்',
+      },
+      localizedSummary: {
+        'kn': 'ಸಾಮಾನ್ಯ ಗರ್ಭಾವಸ್ಥೆಯ ಆಯಾಸ ಮತ್ತು ತಕ್ಷಣ ವೈದ್ಯಕೀಯ ನೆರವು ಅಗತ್ಯವಿರುವ ಲಕ್ಷಣಗಳನ್ನು ಗುರುತಿಸಿ.',
+        'te': 'సాధారణ గర్భధారణ అలసట మరియు అత్యవసర వైద్య సంరక్షణ అవసరమైన లక్షణాలను గుర్తించండి.',
+        'hi': 'सामान्य गर्भावस्था की थकान और तत्काल चिकित्सा ध्यान देने वाले लक्षणों के बीच अंतर पहचानें।',
+        'ta': 'வழக்கமான கர்ப்ப சோர்வு மற்றும் உடனடி மருத்துவ கவனிப்பு தேவைப்படும் அறிகுறிகளை அடையாளம் காணவும்.',
+      },
       keyPoints: [
         'Normal: mild fatigue improved by rest and hydration',
         'Requires checkup: severe dizziness, pale skin/gums, rapid heartbeat',
@@ -94,6 +116,18 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
       title: 'Iron-Rich Foods & Smart Absorption',
       summary:
           'How to maximize natural iron intake through balanced daily meals and vitamin C pairings.',
+      localizedTitle: {
+        'kn': 'ಕಬ್ಬಿಣಾಂಶ ಭರಿತ ಆಹಾರಗಳು & ಉತ್ತಮ ಹೀರಿಕೊಳ್ಳುವಿಕೆ',
+        'te': 'ఇనుము-రిచ్ ఆహారాలు & స్మార్ట్ శోషణ',
+        'hi': 'आयरन युक्त खाद्य पदार्थ और स्मार्ट अवशोषण',
+        'ta': 'இரும்புச்சத்து நிறைந்த உணவுகள் & சிறந்த உறிஞ்சுதல்',
+      },
+      localizedSummary: {
+        'kn': 'ಸಮತೋಲಿತ ದೈನಂದಿನ ಊಟ ಮತ್ತು ವಿಟಮಿನ್ ಸಿ ಜೊತೆಗೂಡಿಸುವ ಮೂಲಕ ನೈಸರ್ಗಿಕ ಕಬ್ಬಿಣದ ಸೇವನೆಯನ್ನು ಹೆಚ್ಚಿಸಿ.',
+        'te': 'సమతుల్య రోజువారీ భోజనం మరియు విటమిన్ సి కలయికల ద్వారా సహజ ఇనుము తీసుకోవడం పెంచండి.',
+        'hi': 'संतुलित दैनिक भोजन और विटामिन सी के साथ प्राकृतिक आयरन के सेवन को अधिकतम कैसे करें।',
+        'ta': 'சீரான தினசரி உணவு மற்றும் வைட்டமின் சி சேர்க்கைகள் மூலம் இயற்கை இரும்புச்சத்து உட்கொள்ளலை அதிகரிக்கவும்.',
+      },
       keyPoints: [
         'Plant iron: Spinach, lentils (dal), chickpeas, beans, jaggery',
         'Animal iron: Lean poultry, eggs, fish (highly absorbable)',
@@ -112,6 +146,18 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
       title: 'Understanding Your Complete Blood Count (CBC)',
       summary:
           'Decode hemoglobin (Hb), RBC, MCV, and hematocrit values from your lab printout.',
+      localizedTitle: {
+        'kn': 'ನಿಮ್ಮ ಸಿಬಿಸಿ ರಕ್ತ ಪರೀಕ್ಷೆಯನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವುದು',
+        'te': 'మీ పూర్తి రక్త గణన (CBC) ని అర్థం చేసుకోవడం',
+        'hi': 'अपनी पूर्ण रक्त गणना (CBC) को समझना',
+        'ta': 'உங்கள் முழுமையான இரத்த எண்ணிக்கையை (CBC) புரிந்துகொள்வது',
+      },
+      localizedSummary: {
+        'kn': 'ನಿಮ್ಮ ಲ್ಯಾಬ್ ವರದಿಯಿಂದ ಹಿಮೋಗ್ಲೋಬಿನ್ (Hb), RBC, MCV, ಮತ್ತು ಹೆಮಟೋಕ್ರಿಟ್ ಮೌಲ್ಯಗಳನ್ನು ಡಿಕೋಡ್ ಮಾಡಿ.',
+        'te': 'మీ ల్యాబ్ నివేదిక నుండి హిమోగ్లోబిన్ (Hb), RBC, MCV విలువలను అర్థం చేసుకోండి.',
+        'hi': 'अपनी लैब रिपोर्ट से हीमोग्लोबिन (Hb), RBC, MCV और हेमटोक्रिट मानों को समझें।',
+        'ta': 'உங்கள் ஆய்வக அறிக்கையிலிருந்து ஹீமோகுளோபின் (Hb), RBC, MCV மதிப்புகளை புரிந்து கொள்ளுங்கள்.',
+      },
       keyPoints: [
         'Hb (Haemoglobin): Main screening marker (WHO standard: ≥ 11.0 g/dL)',
         'MCV (Mean Corpuscular Volume): Size of red blood cells',
@@ -124,12 +170,24 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
     KnowledgeHubTopic(
       id: 'doctor-prep',
       category: 'Checkup',
-      icon: '📞',
+      icon: '🩺',
       color: Color(0xFF8E44AD),
       bgColor: Color(0xFFF5EEF8),
       title: 'Preparing for Your Doctor Checkup',
       summary:
           'How to make the most of your prenatal consultations with organized reports and symptom notes.',
+      localizedTitle: {
+        'kn': 'ವೈದ್ಯರ ತಪಾಸಣೆಗೆ ಸಿದ್ಧತೆ',
+        'te': 'వైద్యుని తనిఖీకి సిద్ధమవ్వడం',
+        'hi': 'अपने डॉक्टर चेकअप की तैयारी',
+        'ta': 'உங்கள் மருத்துவ பரிசோதனைக்கு தயாராகுதல்',
+      },
+      localizedSummary: {
+        'kn': 'ಸಂಘಟಿತ ವರದಿಗಳು ಮತ್ತು ರೋಗಲಕ್ಷಣ ಟಿಪ್ಪಣಿಗಳೊಂದಿಗೆ ನಿಮ್ಮ ವೈದ್ಯರ ಭೇಟಿಯನ್ನು ಹೇಗೆ ಹೆಚ್ಚು ಉಪಯುಕ್ತವಾಗಿಸುವುದು.',
+        'te': 'నివేదికలు మరియు లక్షణాల నోట్లతో మీ వైద్యుడి సంప్రదింపులను ఎలా ఉపయోగించుకోవాలి.',
+        'hi': 'व्यवस्थित रिपोर्ट और लक्षण नोट्स के साथ अपने डॉक्टर के परामर्श का अधिकतम लाभ कैसे उठाएं।',
+        'ta': 'அறிக்கைகள் மற்றும் அறிகுறி குறிப்புகளுடன் உங்கள் மருத்துவ ஆலோசனையை எவ்வாறு பயனுள்ளதாக்குவது.',
+      },
       keyPoints: [
         'Bring recent CBC reports and ultrasound gestational age notes',
         'Note any dizziness, restless legs, or palpitations',
@@ -143,162 +201,94 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredTopics = _selectedCategory == 'All'
-        ? topics
-        : topics.where((t) => t.category == _selectedCategory).toList();
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: LocalizationService.currentLanguage,
+      builder: (context, lang, __) {
+        final L = LocalizationService.tr;
 
-    return PageLayout(
-      title: 'Knowledge Hub',
-      eyebrow: 'MOMUCOO • PATIENT PORTAL',
-      activePath: Routes.knowledgeHub,
-      description:
-          'Clear, evidence-based guidance for understanding anemia, nutrition, and maternal wellness during pregnancy.',
-      children: [
-        // Hero Welcome Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFFF5F2), Color(0xFFFFF9F5)],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFF5D5CB)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
+        final categories = [
+          ('All', L('all')),
+          ('Basics', L('basics')),
+          ('Precautions', L('precautions')),
+          ('Diet', L('diet')),
+          ('Tests', L('tests')),
+          ('Checkup', L('checkup')),
+        ];
+
+        final filteredTopics = _selectedCategory == 'All'
+            ? topics
+            : topics.where((t) => t.category == _selectedCategory).toList();
+
+        return PageLayout(
+          title: L('knowledge_hub'),
+          eyebrow: L('patient_portal'),
+          activePath: Routes.knowledgeHub,
+          description: L('knowledge_desc'),
+          children: [
+            // Category Filter Pills
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
                 children: [
-                  Icon(Icons.auto_awesome, color: AppColors.primary, size: 16),
-                  SizedBox(width: 8),
-                  Text(
-                    'EVIDENCE-BASED MATERNAL EDUCATION',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                      letterSpacing: 0.8,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Practical guides to care for yourself and your baby',
-                style: TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 17,
-                  color: AppColors.ink,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Learn how hemoglobin affects pregnancy, what your CBC report means, and how simple dietary steps help maintain healthy iron levels.',
-                style: TextStyle(color: Color(0xFF4B5563), fontSize: 13, height: 1.4),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Category Filter Pills
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (final cat in categories)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(cat),
-                    selected: _selectedCategory == cat,
-                    onSelected: (selected) {
-                      setState(() {
-                        _selectedCategory = cat;
-                      });
-                    },
-                    selectedColor: AppColors.primary,
-                    labelStyle: TextStyle(
-                      color: _selectedCategory == cat ? Colors.white : const Color(0xFF4B5563),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      side: BorderSide(
-                        color: _selectedCategory == cat ? AppColors.primary : const Color(0xFFE5E7EB),
+                  for (final cat in categories)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(cat.$2),
+                        selected: _selectedCategory == cat.$1,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCategory = cat.$1;
+                          });
+                        },
+                        selectedColor: const Color(0xFFC0392B),
+                        checkmarkColor: Colors.white,
+                        labelStyle: TextStyle(
+                          color: _selectedCategory == cat.$1 ? Colors.white : AppColors.ink,
+                          fontWeight: _selectedCategory == cat.$1 ? FontWeight.w700 : FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: _selectedCategory == cat.$1 ? const Color(0xFFC0392B) : const Color(0xFFE5D4CE),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-
-        // Topics List (Filtered based on selection)
-        if (filteredTopics.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(28),
-            alignment: Alignment.center,
-            child: Text(
-              'No guides found for "$_selectedCategory".',
-              style: const TextStyle(color: AppColors.muted, fontSize: 14),
-            ),
-          )
-        else
-          for (final topic in filteredTopics) ...[
-            _buildTopicCard(topic),
-            const SizedBox(height: 14),
-          ],
-
-        // WHO Guideline Disclaimer Note matching web
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8F9FA),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE9ECEF)),
-          ),
-          child: const Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.help_outline_rounded, color: Color(0xFF6C757D), size: 18),
-              SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Information is sourced from World Health Organization (WHO 2011) Guidelines (WHO/NMH/NHD/MNM/11.1). '
-                  'This educational content is not a replacement for formal prenatal medical consultation.',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF6C757D), height: 1.4),
-                ),
+                ],
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-      ],
+            ),
+            const SizedBox(height: 14),
+
+            // Topics List
+            for (final topic in filteredTopics)
+              _buildTopicCard(topic, lang.code, L),
+
+            const SizedBox(height: 16),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildTopicCard(KnowledgeHubTopic topic) {
+  Widget _buildTopicCard(KnowledgeHubTopic topic, String langCode, String Function(String) L) {
     final isExpanded = _expandedIds.contains(topic.id);
+    final titleText = topic.localizedTitle?[langCode] ?? topic.title;
+    final summaryText = topic.localizedSummary?[langCode] ?? topic.summary;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isExpanded ? topic.color : const Color(0xFFE5E7EB),
-          width: isExpanded ? 1.5 : 1.0,
-        ),
+        border: Border.all(color: const Color(0xFFE5D4CE)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isExpanded ? 0.06 : 0.03),
-            blurRadius: isExpanded ? 12 : 6,
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
@@ -306,9 +296,8 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with icon and title
+          // Category tag & Icon
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 44,
@@ -317,8 +306,9 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
                   color: topic.bgColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                alignment: Alignment.center,
-                child: Text(topic.icon, style: const TextStyle(fontSize: 22)),
+                child: Center(
+                  child: Text(topic.icon, style: const TextStyle(fontSize: 22)),
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -326,7 +316,7 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      topic.category.toUpperCase(),
+                      L(topic.category.toLowerCase()).toUpperCase(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
@@ -336,7 +326,7 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      topic.title,
+                      titleText,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -353,7 +343,7 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
 
           // Summary
           Text(
-            topic.summary,
+            summaryText,
             style: const TextStyle(
               fontSize: 13.5,
               color: Color(0xFF4B5563),
@@ -432,7 +422,7 @@ class _KnowledgeHubScreenState extends State<KnowledgeHubScreen> {
             width: double.infinity,
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFFE5E7EB)),
+                side: const BorderSide(color: Color(0xFFE5D4CE)),
                 backgroundColor: isExpanded ? const Color(0xFFF3F4F6) : Colors.white,
                 foregroundColor: isExpanded ? const Color(0xFF374151) : topic.color,
                 padding: const EdgeInsets.symmetric(vertical: 10),

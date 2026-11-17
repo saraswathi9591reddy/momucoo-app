@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/localization.dart';
 import 'core/storage.dart';
 import 'core/theme.dart';
 import 'router.dart';
@@ -21,10 +22,13 @@ class _MomucooAppState extends State<MomucooApp> {
   late final _router = buildRouter();
 
   @override
-  Widget build(BuildContext context) => MaterialApp.router(
-        title: 'Momucoo',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        routerConfig: _router,
+  Widget build(BuildContext context) => ValueListenableBuilder<AppLanguage>(
+        valueListenable: LocalizationService.currentLanguage,
+        builder: (context, currentLang, _) => MaterialApp.router(
+          title: 'Momucoo',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light(),
+          routerConfig: _router,
+        ),
       );
 }

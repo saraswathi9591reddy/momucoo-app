@@ -1,333 +1,288 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/localization.dart';
 import '../core/models/models.dart';
 import '../core/storage.dart';
 import '../core/theme.dart';
 import '../router.dart';
 import '../widgets/page_layout.dart';
 
-/// Port of frontend/src/pages/Dashboard.jsx (route /dashboard).
-/// Matches the web app design with red greeting banner, 4 stats cards,
-/// latest screening card with severity badge, and quick actions list.
+/// Fully localized Dashboard screen.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   String _greeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    final L = LocalizationService.tr;
+    if (hour < 12) return L('good_morning');
+    if (hour < 17) return L('good_afternoon');
+    return L('good_evening');
   }
 
   @override
   Widget build(BuildContext context) {
-    final s = AppStorage.instance;
-    final profile = s.profileOr('saraswathi reddy');
-    final pregnancy = s.readMap(StorageKeys.pregnancyData);
-    final cbc = s.readMap(StorageKeys.cbcData);
-    final ai = s.readMap(StorageKeys.aiResult);
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: LocalizationService.currentLanguage,
+      builder: (context, _, __) {
+        final L = LocalizationService.tr;
+        final s = AppStorage.instance;
+        final profile = s.profileOr('saraswathi reddy');
+        final pregnancy = s.readMap(StorageKeys.pregnancyData);
+        final cbc = s.readMap(StorageKeys.cbcData);
+        final ai = s.readMap(StorageKeys.aiResult);
 
-    final userName = profile.name.isNotEmpty && profile.name != 'Ananya Sharma'
-        ? profile.name
-        : 'saraswathi reddy';
-    final pregnancyWeek = pregnancy?['week'] ?? profile.pregnancyWeek ?? '35';
-    final hbValue = cbc?['hb']?.toString() ?? '2.2';
-    final riskLevel = ai?['risk']?.toString() ?? 'Severe Anemia';
+        final userName = profile.name.isNotEmpty && profile.name != 'Ananya Sharma'
+            ? profile.name
+            : 'Saraswathi Reddy';
+        final pregnancyWeek = pregnancy?['week'] ?? profile.pregnancyWeek ?? '35';
+        final hbValue = cbc?['hb']?.toString() ?? '2.2';
+        final riskLevel = ai?['risk']?.toString() ?? 'Severe Anemia';
 
-    return PageLayout(
-      title: 'Dashboard',
-      eyebrow: 'MOMUCOO • PATIENT PORTAL',
-      description: 'Your pregnancy anemia screening overview',
-      activePath: Routes.dashboard,
-      children: [
-        // 1. Welcome Red Banner (matching web app)
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFC0392B), Color(0xFFE74C3C)],
-            ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFC0392B).withValues(alpha: 0.3),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${_greeting()},',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      userName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Week $pregnancyWeek of pregnancy',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 64,
-                height: 64,
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Center(child: Text('🩸', style: TextStyle(fontSize: 28))),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // 2. Stats Grid (4 Cards matching web app)
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.6,
+        return PageLayout(
+          title: L('dashboard'),
+          eyebrow: L('patient_portal'),
+          description: L('dashboard_desc'),
+          activePath: Routes.dashboard,
           children: [
-            _statCard(
-              icon: Icons.water_drop_outlined,
-              iconColor: const Color(0xFFC0392B),
-              iconBg: const Color(0xFFFDE8E6),
-              value: hbValue,
-              label: 'Latest Hb (g/dL)',
-            ),
-            _statCard(
-              icon: Icons.timeline,
-              iconColor: const Color(0xFF2980B9),
-              iconBg: const Color(0xFFE8F4F8),
-              value: '2',
-              label: 'Total Screenings',
-            ),
-            _statCard(
-              icon: Icons.description_outlined,
-              iconColor: const Color(0xFF27AE60),
-              iconBg: const Color(0xFFEAF9E7),
-              value: '2',
-              label: 'Blood Reports',
-            ),
-            _statCard(
-              icon: Icons.calendar_today_outlined,
-              iconColor: const Color(0xFFE67E22),
-              iconBg: const Color(0xFFFEF5E7),
-              value: pregnancyWeek.toString(),
-              label: 'Pregnancy Week',
-            ),
-          ],
-        ),
-
-        // 3. Latest Screening Card
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5D4CE)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+            // 1. Welcome Red Banner
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFC0392B), Color(0xFFE74C3C)],
+                ),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFC0392B).withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Row(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${_greeting()},',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          userName,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          L('week_of_pregnancy').replaceFirst('{0}', pregnancyWeek),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(child: Text('🩸', style: TextStyle(fontSize: 28))),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // 2. Stats Grid (4 Cards)
+            GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.6,
+              children: [
+                _statCard(
+                  icon: Icons.water_drop_outlined,
+                  iconColor: const Color(0xFFC0392B),
+                  iconBg: const Color(0xFFFDE8E6),
+                  value: '$hbValue g/dL',
+                  label: L('latest_hb'),
+                ),
+                _statCard(
+                  icon: Icons.bar_chart_rounded,
+                  iconColor: const Color(0xFF7C3AED),
+                  iconBg: const Color(0xFFEDE9FE),
+                  value: '3',
+                  label: L('total_screenings'),
+                ),
+                _statCard(
+                  icon: Icons.folder_open_outlined,
+                  iconColor: const Color(0xFF0EA5E9),
+                  iconBg: const Color(0xFFE0F2FE),
+                  value: '2',
+                  label: L('blood_reports'),
+                ),
+                _statCard(
+                  icon: Icons.pregnant_woman_rounded,
+                  iconColor: const Color(0xFF16A34A),
+                  iconBg: const Color(0xFFDCFCE7),
+                  value: 'W$pregnancyWeek',
+                  label: L('pregnancy_week'),
+                ),
+              ],
+            ),
+
+            // 3. Latest Screening Card
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFE5D4CE)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.water_drop, color: Color(0xFFC0392B), size: 18),
-                      SizedBox(width: 8),
                       Text(
-                        'Latest Screening',
-                        style: TextStyle(
-                          fontSize: 16,
+                        L('latest_screening'),
+                        style: const TextStyle(
+                          fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: AppColors.ink,
                         ),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDE8E6),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          L('new'),
+                          style: const TextStyle(
+                            color: Color(0xFFC0392B),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () => context.go(Routes.cbcAnalysis),
-                    icon: const Icon(Icons.add, size: 14),
-                    label: const Text('New', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC0392B),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFC0392B),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 10),
                   Text(
                     riskLevel,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 20,
                       fontWeight: FontWeight.w800,
                       color: Color(0xFFC0392B),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Hb: $hbValue g/dL',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280), fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                '15 November 2026',
-                style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
-              ),
-              const SizedBox(height: 2),
-              const Text(
-                'Based on WHO 2011 (WHO/NMH/NHD/MNM/11.1)',
-                style: TextStyle(fontSize: 11, color: Color(0xFFBDC3C7)),
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => context.go(Routes.aiAnalysis),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFC0392B),
-                    side: const BorderSide(color: Color(0xFFC0392B)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text('View Full Details →', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // 4. Quick Actions
-        Container(
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE5D4CE)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Icon(Icons.flash_on, color: Color(0xFFC0392B), size: 18),
-                  SizedBox(width: 8),
+                  const SizedBox(height: 4),
                   Text(
-                    'Quick Actions',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
+                    'Hb: $hbValue g/dL',
+                    style: const TextStyle(fontSize: 13, color: AppColors.muted),
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () => context.go(Routes.aiAnalysis),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFC0392B)),
+                        foregroundColor: const Color(0xFFC0392B),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      child: Text(
+                        L('view_full_details'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              _quickActionItem(
-                icon: Icons.bloodtype,
-                title: 'Upload CBC Report',
-                subtitle: 'Image or PDF with OCR extraction',
-                onTap: () => context.go(Routes.cbcAnalysis),
-              ),
-              _quickActionItem(
-                icon: Icons.assignment_outlined,
-                title: 'Symptom Assessment',
-                subtitle: 'Answer 8 key symptom questions',
-                onTap: () => context.go(Routes.healthCheck),
-              ),
-              _quickActionItem(
-                icon: Icons.folder_open_outlined,
-                title: 'View All Reports',
-                subtitle: 'History & downloadable PDFs',
-                onTap: () => context.go(Routes.reports),
-              ),
-              _quickActionItem(
-                icon: Icons.restaurant_outlined,
-                title: 'Nutrition Guide',
-                subtitle: 'Iron-rich foods & meal tips',
-                onTap: () => context.go(Routes.carePlan),
-              ),
-              _quickActionItem(
-                icon: Icons.alarm,
-                title: 'Daily Care Reminders',
-                subtitle: 'Exact scheduled medication alerts',
-                onTap: () => context.go(Routes.reminders),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+
+            // 4. Quick Actions
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  L('quick_actions'),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.ink,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _quickActionItem(
+                  icon: Icons.upload_file_outlined,
+                  title: L('upload_cbc_report'),
+                  subtitle: L('upload_cbc_subtitle'),
+                  onTap: () => context.go(Routes.cbcAnalysis),
+                ),
+                _quickActionItem(
+                  icon: Icons.assignment_outlined,
+                  title: L('symptom_assessment'),
+                  subtitle: L('symptom_subtitle'),
+                  onTap: () => context.go(Routes.healthCheck),
+                ),
+                _quickActionItem(
+                  icon: Icons.folder_open_outlined,
+                  title: L('view_all_reports'),
+                  subtitle: L('view_reports_subtitle'),
+                  onTap: () => context.go(Routes.reports),
+                ),
+                _quickActionItem(
+                  icon: Icons.restaurant_outlined,
+                  title: L('nutrition_guide'),
+                  subtitle: L('nutrition_guide_subtitle'),
+                  onTap: () => context.go(Routes.carePlan),
+                ),
+                _quickActionItem(
+                  icon: Icons.alarm,
+                  title: L('daily_care_reminders'),
+                  subtitle: L('care_reminders_subtitle'),
+                  onTap: () => context.go(Routes.reminders),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
