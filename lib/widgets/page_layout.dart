@@ -31,16 +31,75 @@ class PageLayout extends StatelessWidget {
       drawer: const MomucooDrawer(),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: [
-            if (eyebrow != null)
-              Text(eyebrow!, style: const TextStyle(fontSize: 12, letterSpacing: 1.2, fontWeight: FontWeight.w700, color: AppColors.accent)),
-            Text(title, style: Theme.of(context).textTheme.headlineMedium),
-            if (description != null) ...[
-              const SizedBox(height: 6),
-              Text(description!, style: const TextStyle(color: AppColors.muted)),
-            ],
-            const SizedBox(height: 16),
+            // Modern Header Section
+            Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFF1E4DF)),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.04),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (eyebrow != null) ...[
+                    Row(
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          eyebrow!.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            letterSpacing: 1.1,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                  ],
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.ink,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  if (description != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      description!,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF6B7280),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
             for (final c in children) ...[c, const SizedBox(height: 16)],
           ],
         ),
