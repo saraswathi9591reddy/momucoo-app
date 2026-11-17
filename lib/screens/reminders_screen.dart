@@ -104,7 +104,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
         return PageLayout(
           title: L('daily_care_reminders'),
           eyebrow: L('daily_care_eyebrow'),
-          activePath: Routes.dashboard,
+          activePath: Routes.reminders,
           description: L('reminders_desc'),
           children: [
             // Notification Test Banner
