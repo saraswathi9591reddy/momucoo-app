@@ -23,9 +23,28 @@ class PageLayout extends StatelessWidget {
     (Icons.person_outline, 'Profile', Routes.profile),
   ];
 
+  IconData _getPageIcon(String t) {
+    final s = t.toLowerCase();
+    if (s.contains('dashboard')) return Icons.grid_view_rounded;
+    if (s.contains('profile')) return Icons.badge_outlined;
+    if (s.contains('symptom') || s.contains('health')) return Icons.favorite_rounded;
+    if (s.contains('cbc')) return Icons.water_drop_rounded;
+    if (s.contains('result') || s.contains('ai') || s.contains('screen')) return Icons.auto_awesome_rounded;
+    if (s.contains('report') || s.contains('histor')) return Icons.assessment_rounded;
+    if (s.contains('nutrit') || s.contains('diet') || s.contains('care plan')) return Icons.restaurant_rounded;
+    if (s.contains('remind') || s.contains('alarm')) return Icons.alarm_rounded;
+    if (s.contains('knowledg') || s.contains('hub') || s.contains('guide')) return Icons.menu_book_rounded;
+    if (s.contains('feedback')) return Icons.rate_review_rounded;
+    if (s.contains('emergency') || s.contains('sos')) return Icons.emergency_rounded;
+    return Icons.spa_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
     final idx = mainMenu.indexWhere((m) => m.$3 == activePath);
+    final pageIcon = _getPageIcon(title);
+    final isEmergency = title.toLowerCase().contains('emergency');
+
     return Scaffold(
       appBar: MomucooAppBar(title: title),
       drawer: const MomucooDrawer(),
@@ -33,70 +52,124 @@ class PageLayout extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           children: [
-            // Modern Header Section
+            // Premium Gradient Hero Header Card
             Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              margin: const EdgeInsets.only(bottom: 18),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFF1E4DF)),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isEmergency
+                      ? [const Color(0xFFC0392B), const Color(0xFF962D22)]
+                      : [
+                          const Color(0xFFFFF7F5),
+                          const Color(0xFFFFF0EC),
+                          Colors.white,
+                        ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isEmergency ? const Color(0xFFE74C3C) : const Color(0xFFF6D8D0),
+                  width: 1.2,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
+                    color: isEmergency
+                        ? const Color(0xFFC0392B).withOpacity(0.25)
+                        : const Color(0xFFC0392B).withOpacity(0.06),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (eyebrow != null) ...[
-                    Row(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
-                            shape: BoxShape.circle,
+                        if (eyebrow != null) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isEmergency
+                                  ? Colors.white.withOpacity(0.2)
+                                  : const Color(0xFFFDEDEC),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: isEmergency ? Colors.white : AppColors.primary,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  eyebrow!.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 10.5,
+                                    letterSpacing: 1.0,
+                                    fontWeight: FontWeight.w800,
+                                    color: isEmergency ? Colors.white : AppColors.primary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
+                          const SizedBox(height: 8),
+                        ],
                         Text(
-                          eyebrow!.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            letterSpacing: 1.1,
+                          title,
+                          style: TextStyle(
+                            fontSize: 22,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.primary,
+                            color: isEmergency ? Colors.white : AppColors.ink,
+                            letterSpacing: -0.4,
                           ),
                         ),
+                        if (description != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            description!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isEmergency ? Colors.white70 : const Color(0xFF6B7280),
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
-                    const SizedBox(height: 6),
-                  ],
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.ink,
-                      letterSpacing: -0.3,
-                    ),
                   ),
-                  if (description != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      description!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF6B7280),
-                        height: 1.4,
+                  const SizedBox(width: 12),
+                  // Decorative Icon Badge
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isEmergency
+                          ? Colors.white.withOpacity(0.2)
+                          : const Color(0xFFFDEDEC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isEmergency
+                            ? Colors.white.withOpacity(0.3)
+                            : const Color(0xFFFADBD8),
                       ),
                     ),
-                  ],
+                    child: Icon(
+                      pageIcon,
+                      color: isEmergency ? Colors.white : AppColors.primary,
+                      size: 24,
+                    ),
+                  ),
                 ],
               ),
             ),
