@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'storage.dart';
 
 enum AppLanguage {
   english('en', 'English', 'English'),
@@ -15,11 +16,27 @@ enum AppLanguage {
 }
 
 class LocalizationService {
+  static const _storageKey = 'selected_app_language';
   static final ValueNotifier<AppLanguage> currentLanguage =
-      ValueNotifier<AppLanguage>(AppLanguage.english);
+      ValueNotifier<AppLanguage>(AppLanguage.kannada);
+
+  static void init() {
+    try {
+      final savedCode = AppStorage.instance.getRaw(_storageKey);
+      if (savedCode != null) {
+        final match = AppLanguage.values.where((l) => l.code == savedCode);
+        if (match.isNotEmpty) {
+          currentLanguage.value = match.first;
+        }
+      }
+    } catch (_) {}
+  }
 
   static void setLanguage(AppLanguage lang) {
     currentLanguage.value = lang;
+    try {
+      AppStorage.instance.setRaw(_storageKey, lang.code);
+    } catch (_) {}
   }
 
   static String tr(String key) {
@@ -225,6 +242,25 @@ class LocalizationService {
       'red_flag_6': 'Rapid, fluttering heartbeat accompanied by dizziness',
       'next_day_review_title': 'Next-Day Clinical Review Guidance',
       'next_day_review_desc': 'If symptoms are moderate (mild fatigue, pale skin, occasional headaches), schedule an in-person appointment with your obstetrician within 24–48 hours and request a complete blood count (CBC) with serum ferritin check.',
+
+      // Nutrition Guide Foods
+      'iron_rich_foods_title': 'Iron-Rich Foods & Nutritional Guidance',
+      'iron_rich_foods_subtitle': 'Essential foods to boost hemoglobin and support maternal health',
+      'nutrition_disclaimer': 'General dietary guidance only. Always follow your obstetrician’s prescription for iron and folic acid supplements.',
+      'food_spinach_title': 'Spinach & Dark Leafy Greens',
+      'food_spinach_desc': 'Packed with plant-based non-heme iron and folate. Best absorbed with vitamin C (like lemon juice).',
+      'food_lentils_title': 'Lentils, Beans & Pulses',
+      'food_lentils_desc': 'Rich source of iron, protein, and dietary fiber essential during pregnancy.',
+      'food_cereals_title': 'Fortified Cereals, Millets & Ragi',
+      'food_cereals_desc': 'Ragi (finger millet) and whole grains are traditional superfoods packed with calcium and iron.',
+      'food_jaggery_title': 'Organic Jaggery (Gur)',
+      'food_jaggery_desc': 'A traditional iron booster that aids digestion and provides quick natural energy.',
+      'food_dates_title': 'Dates, Raisins & Dried Figs',
+      'food_dates_desc': 'Natural sweeteners high in iron, potassium, and antioxidants. Great healthy snack.',
+      'food_eggs_title': 'Eggs & Lean Poultry',
+      'food_eggs_desc': 'High in bioavailable heme iron and vital proteins — most easily absorbed by your body.',
+      'food_beetroot_title': 'Beetroot & Pomegranate',
+      'food_beetroot_desc': 'Powerhouses of iron and folic acid that actively stimulate red blood cell production.',
     },
 
     // ═══════════════════════════════════════════════════════════
@@ -422,6 +458,25 @@ class LocalizationService {
       'red_flag_6': 'ತಲೆತಿರುಗುವಿಕೆಯೊಂದಿಗೆ ವೇಗದ ಹೃದಯಬಡಿತ',
       'next_day_review_title': 'ಮರುದಿನ ಕ್ಲಿನಿಕ್ ಪರಿಶೀಲನೆ ಮಾರ್ಗದರ್ಶನ',
       'next_day_review_desc': 'ಲಕ್ಷಣಗಳು ಮಧ್ಯಮವಾಗಿದ್ದರೆ, 24-48 ಗಂಟೆಗಳಲ್ಲಿ ವೈದ್ಯರನ್ನು ಭೇಟಿ ಮಾಡಿ ಮತ್ತು ಸಿಬಿಸಿ ಪರೀಕ್ಷೆ ಕೇಳಿ.',
+
+      // Nutrition Guide Foods in Kannada
+      'iron_rich_foods_title': 'ಕಬ್ಬಿಣಾಂಶ ಭರಿತ ಆಹಾರಗಳು ಮತ್ತು ಪೌಷ್ಟಿಕಾಂಶ ಮಾರ್ಗದರ್ಶನ',
+      'iron_rich_foods_subtitle': 'ಹಿಮೋಗ್ಲೋಬಿನ್ ಹೆಚ್ಚಿಸಲು ಮತ್ತು ತಾಯಿಯ ಆರೋಗ್ಯವನ್ನು ಬೆಂಬಲಿಸಲು ಪ್ರಮುಖ ಆಹಾರಗಳು',
+      'nutrition_disclaimer': 'ಸಾಮಾನ್ಯ ಆಹಾರ ಮಾರ್ಗದರ್ಶನ ಮಾತ್ರ. ಕಬ್ಬಿಣ ಮತ್ತು ಫೋಲಿಕ್ ಆಸಿಡ್ ಮಾತ್ರೆಗಳಿಗಾಗಿ ಯಾವಾಗಲೂ ನಿಮ್ಮ ವೈದ್ಯರ ಸಲಹೆಯನ್ನು ಅನುಸರಿಸಿ.',
+      'food_spinach_title': 'ಪಾಲಕ್ ಸೊಪ್ಪು ಮತ್ತು ಹಸಿರು ತರಕಾರಿಗಳು',
+      'food_spinach_desc': 'ಸಸ್ಯ ಆಧಾರಿತ ಕಬ್ಬಿಣಾಂಶ ಮತ್ತು ಫೋಲೇಟ್ ಭರಿತ. ನಿಂಬೆ ರಸದಂತಹ ವಿಟಮಿನ್ ಸಿ ಯೊಂದಿಗೆ ಸೇವಿಸಿದರೆ ಹೆಚ್ಚು ಹೀರಲ್ಪಡುತ್ತದೆ.',
+      'food_lentils_title': 'ಬೇಳೆಕಾಳುಗಳು, ಕಾಳುಗಳು ಮತ್ತು ಧಾನ್ಯಗಳು',
+      'food_lentils_desc': 'ಗರ್ಭಾವಸ್ಥೆಯಲ್ಲಿ ಅಗತ್ಯವಿರುವ ಕಬ್ಬಿಣ, ಪ್ರೋಟೀನ್ ಮತ್ತು ನಾರಿನಂಶದ ಸಮೃದ್ಧ ಮೂಲ.',
+      'food_cereals_title': 'ರಾಗಿ ಮತ್ತು ಬಲವರ್ಧಿತ ಧಾನ್ಯಗಳು',
+      'food_cereals_desc': 'ರಾಗಿ ಮತ್ತು ಸಿರಿಧಾನ್ಯಗಳು ಕ್ಯಾಲ್ಸಿಯಂ ಮತ್ತು ಕಬ್ಬಿಣಾಂಶದಿಂದ ತುಂಬಿರುವ ಸಾಂಪ್ರದಾಯಿಕ ಆಹಾರಗಳು.',
+      'food_jaggery_title': 'ಸಾವಯವ ಬೆಲ್ಲ',
+      'food_jaggery_desc': 'ಜೀರ್ಣಕ್ರಿಯೆಗೆ ಸಹಕಾರಿಯಾದ ಮತ್ತು ತ್ವರಿತ ನೈಸರ್ಗಿಕ ಶಕ್ತಿ ನೀಡುವ ಸಾಂಪ್ರದಾಯಿಕ ಕಬ್ಬಿಣದ ಬೂಸ್ಟರ್.',
+      'food_dates_title': 'ಖರ್ಜೂರ, ಒಣದ್ರಾಕ್ಷಿ ಮತ್ತು ಅಂಜೂರ',
+      'food_dates_desc': 'ಕಬ್ಬಿಣ, ಪೊಟ್ಯಾಸಿಯಮ್ ಮತ್ತು ಉತ್ಕರ್ಷಣ ನಿರೋಧಕಗಳು ಸಮೃದ್ಧವಾಗಿರುವ ಆರೋಗ್ಯಕರ ತಿಂಡಿ.',
+      'food_eggs_title': 'ಮೊಟ್ಟೆ ಮತ್ತು ಕೋಳಿ ಮಾಂಸ',
+      'food_eggs_desc': 'ದೇಹದಲ್ಲಿ ಅತಿ ಸುಲಭವಾಗಿ ಹೀರಲ್ಪಡುವ ಹೀಮ್ ಕಬ್ಬಿಣಾಂಶ ಮತ್ತು ಅಗತ್ಯ ಪ್ರೋಟೀನ್ ನೀಡುತ್ತದೆ.',
+      'food_beetroot_title': 'ಬೀಟ್‌ರೂಟ್ ಮತ್ತು ದಾಳಿಂಬೆ',
+      'food_beetroot_desc': 'ಕೆಂಪು ರಕ್ತ ಕಣಗಳ ಉತ್ಪಾದನೆಯನ್ನು ಉತ್ತೇಜಿಸುವ ಫೋಲಿಕ್ ಆಸಿಡ್ ಮತ್ತು ಕಬ್ಬಿಣಾಂಶದ ಶಕ್ತಿ ಕೇಂದ್ರ.',
     },
 
     // ═══════════════════════════════════════════════════════════
@@ -618,6 +673,25 @@ class LocalizationService {
       'red_flag_6': 'తలతిరగడంతో పాటు వేగంగా గుండె కొట్టుకోవడం',
       'next_day_review_title': 'తరువాతి రోజు క్లినికల్ సమీక్ష మార్గదర్శకత్వం',
       'next_day_review_desc': 'లక్షణాలు మితంగా ఉంటే, 24-48 గంటల్లో మీ వైద్యుడిని సంప్రదించండి.',
+
+      // Nutrition Guide Foods in Telugu
+      'iron_rich_foods_title': 'ఇనుము సమృద్ధిగా ఉండే ఆహారాలు & పోషకాహార మార్గదర్శకత్వం',
+      'iron_rich_foods_subtitle': 'హిమోగ్లోబిన్ పెంచడానికి మరియు తల్లి ఆరోగ్యాన్ని కాపాడటానికి ముఖ్యమైన ఆహారాలు',
+      'nutrition_disclaimer': 'సాధారణ ఆహార మార్గదర్శకత్వం మాత్రమే. ఐరన్ మరియు ఫోలిక్ యాసిడ్ సప్లిమెంట్ల కోసం ఎల్లప్పుడూ మీ వైద్యుడి సలహాను పాటించండి.',
+      'food_spinach_title': 'పాలకూర & ఆకుకూరలు',
+      'food_spinach_desc': 'మొక్కల ఆధారిత ఇనుము మరియు ఫోలేట్‌తో సమృద్ధిగా ఉంటుంది. విటమిన్ సి (నిమ్మరసం) తో కలిపి తీసుకుంటే సులభంగా శోషించబడుతుంది.',
+      'food_lentils_title': 'పప్పుధాన్యాలు, బీన్స్ & గింజలు',
+      'food_lentils_desc': 'గర్భధారణ సమయంలో అవసరమైన ఐరన్, ప్రోటీన్ మరియు పీచు పదార్థాల అద్భుతమైన మూలం.',
+      'food_cereals_title': 'రాగులు & బలవర్ధక తృణధాన్యాలు',
+      'food_cereals_desc': 'రాగులు మరియు తృణధాన్యాలు కాల్షియం మరియు ఇనుముతో నిండిన సాంప్రదాయ సూపర్ ఫుడ్స్.',
+      'food_jaggery_title': 'సేంద్రీయ బెల్లం',
+      'food_jaggery_desc': 'జీర్ణక్రియకు సహాయపడే మరియు తక్షణ సహజ శక్తినిచ్చే సాంప్రదాయ ఇనుము బూస్టర్.',
+      'food_dates_title': 'ఖర్జూరాలు, ఎండుద్రాక్ష & అంజూర',
+      'food_dates_desc': 'ఐరన్, పొటాషియం మరియు యాంటీఆక్సిడెంట్లతో సమృద్ధిగా ఉండే సహజమైన ఆరోగ్యకరమైన చిరుతిండి.',
+      'food_eggs_title': 'గుడ్లు & పౌల్ట్రీ చికెన్',
+      'food_eggs_desc': 'శరీరం సులభంగా శోషించుకునే హీమ్ ఐరన్ మరియు అవసరమైన ప్రోటీన్ల మూలం.',
+      'food_beetroot_title': 'బీట్‌రూట్ & దానిమ్మ',
+      'food_beetroot_desc': 'ఎర్ర రక్త కణాల ఉత్పత్తిని చురుగ్గా పెంచే ఐరన్ మరియు ఫోలిక్ యాసిడ్ పవర్ హౌస్.',
     },
 
     // ═══════════════════════════════════════════════════════════
@@ -814,6 +888,25 @@ class LocalizationService {
       'red_flag_6': 'चक्कर के साथ तेज दिल की धड़कन',
       'next_day_review_title': 'अगले दिन नैदानिक समीक्षा मार्गदर्शन',
       'next_day_review_desc': 'यदि लक्षण मध्यम हैं, तो 24-48 घंटों के भीतर डॉक्टर से परामर्श लें।',
+
+      // Nutrition Guide Foods in Hindi
+      'iron_rich_foods_title': 'आयरन युक्त खाद्य पदार्थ और पोषण संबंधी मार्गदर्शन',
+      'iron_rich_foods_subtitle': 'हीमोग्लोबिन बढ़ाने और मातृ स्वास्थ्य को बढ़ावा देने वाले प्रमुख आहार',
+      'nutrition_disclaimer': 'केवल सामान्य आहार मार्गदर्शन। आयरन और फोलिक एसिड सप्लीमेंट्स के लिए हमेशा अपने डॉक्टर की सलाह का पालन करें।',
+      'food_spinach_title': 'पालक और हरी पत्तेदार सब्जियां',
+      'food_spinach_desc': 'पौधे आधारित आयरन और फोलेट से भरपूर। नींबू के रस जैसे विटामिन सी के साथ लेने पर सबसे अच्छा अवशोषण होता है।',
+      'food_lentils_title': 'दालें, राजमा और फलियां',
+      'food_lentils_desc': 'गर्भावस्था में आवश्यक आयरन, प्रोटीन और डाइटरी फाइबर का समृद्ध स्रोत।',
+      'food_cereals_title': 'रागी, बाजरा और फोर्टिफाइड अनाज',
+      'food_cereals_desc': 'रागी और साबुत अनाज कैल्शियम और आयरन से भरपूर पारंपरिक पौष्टिक आहार हैं।',
+      'food_jaggery_title': 'प्राकृतिक जैविक गुड़',
+      'food_jaggery_desc': 'एक पारंपरिक आयरन बूस्टर जो पाचन में सुधार करता है और तुरंत प्राकृतिक ऊर्जा देता है।',
+      'food_dates_title': 'खजूर, किशमिश और अंजीर',
+      'food_dates_desc': 'आयरन, पोटैशियम और एंटीऑक्सीडेंट से भरपूर प्राकृतिक मीठा और स्वस्थ नाश्ता।',
+      'food_eggs_title': 'अंडे और लीन चिकन',
+      'food_eggs_desc': 'शरीर द्वारा आसानी से अवशोषित होने वाले हीम आयरन और आवश्यक प्रोटीन का बेहतरीन स्रोत।',
+      'food_beetroot_title': 'चुकंदर और अनार',
+      'food_beetroot_desc': 'आयरन और फोलिक एसिड से भरपूर जो लाल रक्त कोशिकाओं के उत्पादन को तेजी से बढ़ाते हैं।',
     },
 
     // ═══════════════════════════════════════════════════════════
@@ -1010,6 +1103,25 @@ class LocalizationService {
       'red_flag_6': 'தலைச்சுற்றலுடன் கூடிய விரைவான இதயத் துடிப்பு',
       'next_day_review_title': 'அடுத்த நாள் மருத்துவ மறுஆய்வு வழிகாட்டுதல்',
       'next_day_review_desc': 'அறிகுறிகள் மிதமாக இருந்தால், 24-48 மணி நேரத்திற்குள் மருத்துவரை அணுகவும்.',
+
+      // Nutrition Guide Foods in Tamil
+      'iron_rich_foods_title': 'இரும்புச்சத்து நிறைந்த உணவுகள் மற்றும் ஊட்டச்சத்து வழிகாட்டுதல்',
+      'iron_rich_foods_subtitle': 'ஹீமோகுளோபினை அதிகரிக்கவும் தாய்மை ஆரோக்கியத்தை ஆதரிக்கவும் உதவும் உணவுகள்',
+      'nutrition_disclaimer': 'பொதுவான உணவு வழிகாட்டுதல் மட்டுமே. இரும்பு மற்றும் ஃபோலிக் அமில மாத்திரைகளுக்கு எப்போதும் உங்கள் மருத்துவரிடம் ஆலோசனை பெறவும்.',
+      'food_spinach_title': 'பசலைக்கீரை & பச்சை இலை காய்கறிகள்',
+      'food_spinach_desc': 'தாவர அடிப்படையிலான இரும்புச்சத்து மற்றும் ஃபோலேட் நிறைந்தது. வைட்டமின் சி (எலுமிச்சை சாறு) உடன் உட்கொண்டால் எளிதில் உறிஞ்சப்படும்.',
+      'food_lentils_title': 'பருப்பு வகைகள், பயறுகள் மற்றும் பீன்ஸ்',
+      'food_lentils_desc': 'கர்ப்ப காலத்தில் தேவையான இரும்புச்சத்து, புரதம் மற்றும் நார்ச்சத்து ஆகியவற்றின் சிறந்த ஆதாரம்.',
+      'food_cereals_title': 'கேழ்வரகு (ராகி) & முழு தானியங்கள்',
+      'food_cereals_desc': 'கேழ்வரகு மற்றும் பாரம்பரிய தானியங்கள் கால்சியம் மற்றும் இரும்புச்சத்தால் நிறைந்தவை.',
+      'food_jaggery_title': 'இயற்கை வெல்லம்',
+      'food_jaggery_desc': 'செரிமானத்தை மேம்படுத்தும் மற்றும் உடனடி இயற்கை ஆற்றலைத் தரும் பாரம்பரிய இரும்புச்சத்து ஊக்கி.',
+      'food_dates_title': 'பேரீச்சம்பழம், உலர் திராட்சை & அத்திப்பழம்',
+      'food_dates_desc': 'இரும்பு, பொட்டாசியம் மற்றும் ஆக்ஸிஜனேற்றங்களால் நிறைந்த ஆரோக்கியமான சிற்றுண்டி.',
+      'food_eggs_title': 'முட்டைகள் & கோழி இறைச்சி',
+      'food_eggs_desc': 'உடலால் மிக எளிதாக உறிஞ்சப்படும் ஹீம் இரும்புச்சத்து மற்றும் அத்தியாவசிய புரதங்கள் கொண்டது.',
+      'food_beetroot_title': 'பீட்ரூட் & மாதுளை',
+      'food_beetroot_desc': 'சிவப்பு இரத்த அணுக்களின் உற்பத்தியை தீவிரமாக தூண்டும் இரும்பு மற்றும் ஃபோலிக் அமிலத்தின் சக்தி மையம்.',
     },
   };
 }

@@ -8,6 +8,7 @@ import 'router.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppStorage.init();
+  LocalizationService.init();
   runApp(const MomucooApp());
 }
 
@@ -25,6 +26,7 @@ class _MomucooAppState extends State<MomucooApp> {
   Widget build(BuildContext context) => ValueListenableBuilder<AppLanguage>(
         valueListenable: LocalizationService.currentLanguage,
         builder: (context, currentLang, _) => MaterialApp.router(
+          key: ValueKey(currentLang),
           title: 'Momucoo',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),

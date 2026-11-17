@@ -54,6 +54,8 @@ class CarePlanScreen extends StatelessWidget {
                   _foodRow('🌾', L('food_cereals_title'), L('food_cereals_desc')),
                   _foodRow('🟫', L('food_jaggery_title'), L('food_jaggery_desc')),
                   _foodRow('🍇', L('food_dates_title'), L('food_dates_desc')),
+                  _foodRow('🥚', L('food_eggs_title'), L('food_eggs_desc')),
+                  _foodRow('🫐', L('food_beetroot_title'), L('food_beetroot_desc')),
                 ],
               ),
             ),
