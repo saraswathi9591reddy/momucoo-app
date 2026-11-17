@@ -39,11 +39,41 @@ class PageLayout extends StatelessWidget {
     return Icons.spa_rounded;
   }
 
+  // Next flow helper
+  (String, String, IconData)? _getNextScreen(String currentPath) {
+    switch (currentPath) {
+      case Routes.dashboard:
+        return ('Go to My Profile', Routes.profile, Icons.arrow_forward_rounded);
+      case Routes.profile:
+        return ('Start Symptom Check', Routes.healthCheck, Icons.arrow_forward_rounded);
+      case Routes.healthCheck:
+        return ('Continue to CBC Analysis', Routes.cbcAnalysis, Icons.arrow_forward_rounded);
+      case Routes.cbcAnalysis:
+        return ('View Screening Results', Routes.aiAnalysis, Icons.arrow_forward_rounded);
+      case Routes.aiAnalysis:
+        return ('View Reports & History', Routes.reports, Icons.arrow_forward_rounded);
+      case Routes.reports:
+        return ('Next: Nutrition Guide', Routes.carePlan, Icons.restaurant_rounded);
+      case Routes.carePlan:
+        return ('Next: Knowledge Hub', Routes.knowledgeHub, Icons.menu_book_rounded);
+      case Routes.knowledgeHub:
+        return ('Next: Daily Care Reminders', Routes.reminders, Icons.alarm_rounded);
+      case Routes.reminders:
+        return ('Next: Share Feedback', Routes.feedback, Icons.rate_review_rounded);
+      case Routes.feedback:
+        return ('Next: Emergency Help', Routes.emergency, Icons.emergency_rounded);
+      case Routes.emergency:
+        return ('Return to Dashboard', Routes.dashboard, Icons.dashboard_rounded);
+      default:
+        return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final idx = mainMenu.indexWhere((m) => m.$3 == activePath);
     final pageIcon = _getPageIcon(title);
     final isEmergency = title.toLowerCase().contains('emergency');
+    final nextScreen = activePath != null ? _getNextScreen(activePath!) : null;
 
     return Scaffold(
       appBar: MomucooAppBar(title: title),
@@ -174,15 +204,39 @@ class PageLayout extends StatelessWidget {
               ),
             ),
             for (final c in children) ...[c, const SizedBox(height: 16)],
+
+            // Next Step Action Banner at bottom of page
+            if (nextScreen != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                margin: const EdgeInsets.only(top: 8, bottom: 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      elevation: 3,
+                      shadowColor: AppColors.primary.withOpacity(0.3),
+                    ),
+                    onPressed: () => context.go(nextScreen.$2),
+                    icon: Icon(nextScreen.$3, size: 20),
+                    label: Text(
+                      nextScreen.$1,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: idx < 0 ? 0 : idx,
-        indicatorColor: idx < 0 ? Colors.transparent : AppColors.peachBg,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        onDestinationSelected: (i) => context.go(mainMenu[i].$3),
-        destinations: [for (final m in mainMenu) NavigationDestination(icon: Icon(m.$1), label: m.$2)],
       ),
     );
   }
