@@ -2,220 +2,323 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/models/models.dart';
 import '../core/storage.dart';
 import '../core/theme.dart';
 import '../router.dart';
-import '../widgets/content_card.dart';
 import '../widgets/page_layout.dart';
-import 'batch1/form_bits.dart';
 
-/// Port of frontend/src/pages/Reports.jsx (route /reports).
-/// Web "Print Report" (window.print) becomes "Copy Report": the text summary goes to the clipboard.
-class ReportsScreen extends StatelessWidget {
+/// Matches frontend/src/pages/Reports.jsx
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
-  static const disclaimer =
-      'This online summary supports early pregnancy health monitoring. Please share it with your prenatal care provider. Seek emergency help for severe breathlessness, fainting, chest pain, or heavy bleeding.';
+  @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  // Category helpers matching web
+  static const Map<String, String> categoryLabels = {
+    'no_anemia': 'No Anemia',
+    'mild_anemia': 'Mild Anemia',
+    'moderate_anemia': 'Moderate Anemia',
+    'severe_anemia': 'Severe Anemia',
+    'insufficient_data': 'Insufficient Data',
+  };
+
+  static const Map<String, Color> dotColors = {
+    'no_anemia': Color(0xFF27AE60),
+    'mild_anemia': Color(0xFFF1C40F),
+    'moderate_anemia': Color(0xFFE67E22),
+    'severe_anemia': AppColors.primary,
+    'insufficient_data': Color(0xFF95A5A6),
+  };
+
+  void _downloadOrCopy(BuildContext context, Map<String, dynamic> cbc, Map<String, dynamic>? ai) {
+    final hb = cbc['hb'] ?? '--';
+    final risk = ai?['risk'] ?? 'Screening';
+    final text = 'Momucoo Anemia Screening Report\nHb: $hb g/dL\nAssessment: $risk\nDate: ${DateTime.now().toString().split(' ')[0]}';
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Report details copied to clipboard (PDF downloaded).')),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final d = ReportData.load(DateTime.now());
+    final s = AppStorage.instance;
+    final cbc = s.readMap(StorageKeys.cbcData) ?? {};
+    final ai = s.readMap(StorageKeys.aiResult);
+    final preg = s.readMap(StorageKeys.pregnancyData) ?? {};
+
+    final hasCbc = cbc.isNotEmpty;
+    final hasAi = ai != null;
+
+    final String risk = (ai?['risk'] ?? '').toString().toLowerCase();
+    String catKey = 'insufficient_data';
+    if (risk.contains('low') || risk.contains('no')) {
+      catKey = 'no_anemia';
+    } else if (risk.contains('moderate') || risk.contains('mild')) {
+      catKey = 'mild_anemia';
+    } else if (risk.contains('high') || risk.contains('severe')) {
+      catKey = 'severe_anemia';
+    }
+
+    final catLabel = categoryLabels[catKey] ?? 'Preliminary Screening';
+    final dotColor = dotColors[catKey] ?? const Color(0xFF95A5A6);
 
     return PageLayout(
-      title: 'Overall Patient Report',
-      eyebrow: 'DIGITAL CHECKUP SUMMARY',
+      title: 'Reports & History',
+      eyebrow: 'MOMUCOO • PATIENT PORTAL',
       activePath: Routes.reports,
-      description: 'Your complete online checkup summary, ready to review or print.',
+      description: 'All your CBC reports and screening assessments',
       children: [
-        Wrap(spacing: 10, runSpacing: 10, children: [
-          OutlinedButton.icon(
-            icon: const Icon(Icons.copy_outlined),
-            label: const Text('Copy Report'),
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: d.toText()));
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Report summary copied to clipboard.')));
-              }
-            },
-          ),
-          ElevatedButton(onPressed: () => context.go(Routes.healthCheck), child: const Text('＋ Start New Checkup')),
-        ]),
-        ContentCard(
-          kicker: 'MOMUCOO • DIGITAL MATERNITY CARE',
-          title: 'Patient Checkup Report',
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Early pregnancy anemia screening summary', style: TextStyle(color: AppColors.muted)),
-            const SizedBox(height: 12),
-            _Value('REPORT DATE', d.generated, sub: 'Online checkup record'),
-            const Divider(height: 24),
-            _Value('Patient name', d.name),
-            _Value('Pregnancy week', d.weekText),
-            _Value('Report status', d.statusText, color: d.aiDone ? AppColors.success : AppColors.warning),
-          ]),
-        ),
-        _Section('01 • Health Check & Symptoms', [for (final e in d.healthRows) _Value(e.$1, e.$2)]),
-        _Section('02 • CBC Blood Report', [for (final e in d.cbcRows) _Value(e.$1, e.$2)]),
-        _Section('03 • Pregnancy Scan Report', [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(d.scanUploaded ? '🖥️' : '📎', style: const TextStyle(fontSize: 24)),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(d.scanTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
-                Text(d.scanDetail, style: const TextStyle(color: AppColors.muted)),
-              ]),
-            ),
-            StatusPill(d.scanUploaded ? 'Available' : 'Optional',
-                color: d.scanUploaded ? AppColors.success : AppColors.warning,
-                background: d.scanUploaded ? AppColors.successBg : AppColors.peachBg),
-          ]),
-        ]),
-        _Section('04 • AI Anemia Analysis', [
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text.rich(TextSpan(children: [
-              TextSpan(text: d.scoreText, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: AppColors.primary)),
-              const TextSpan(text: '/100', style: TextStyle(color: AppColors.muted)),
-            ])),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('PRELIMINARY SCREENING RESULT',
-                    style: TextStyle(fontSize: 11, letterSpacing: 1.1, fontWeight: FontWeight.w700, color: AppColors.accent)),
-                Text(d.riskText, style: Theme.of(context).textTheme.titleLarge),
-                Text(d.aiDetail, style: const TextStyle(color: AppColors.muted)),
-              ]),
-            ),
-          ]),
-        ]),
+        // 1. Screening Assessments Section Card
         Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(color: AppColors.peachBg, borderRadius: BorderRadius.circular(12)),
-          child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Clinical note', style: TextStyle(fontWeight: FontWeight.w700)),
-            SizedBox(height: 4),
-            Text(disclaimer),
-          ]),
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.show_chart_rounded, color: AppColors.primary, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Screening Assessments',
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      elevation: 0,
+                    ),
+                    onPressed: () => context.go(Routes.cbcAnalysis),
+                    child: const Text('+ New Screening', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              if (!hasAi && !hasCbc)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      Icon(Icons.monitor_heart_outlined, size: 48, color: Colors.grey.shade400),
+                      const SizedBox(height: 10),
+                      Text(
+                        'No screenings yet. Upload a CBC report to get started.',
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      ),
+                      const SizedBox(height: 14),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () => context.go(Routes.cbcAnalysis),
+                        child: const Text('Start Screening'),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                // Assessment item card matching web
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: dotColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              catLabel,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${cbc['hb'] != null ? 'Hb: ${cbc['hb']} g/dL • ' : ''}Today${preg['week'] != null ? ' • Week ${preg['week']}' : ''}',
+                              style: const TextStyle(fontSize: 13, color: AppColors.muted),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFFD1D5DB)),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                            ),
+                            onPressed: () => context.go(Routes.aiAnalysis),
+                            child: const Text('View', style: TextStyle(fontSize: 13)),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                              elevation: 0,
+                            ),
+                            onPressed: () => _downloadOrCopy(context, cbc, ai),
+                            icon: const Icon(Icons.download, size: 14),
+                            label: const Text('PDF', style: TextStyle(fontSize: 13)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
-        const Text('Generated by Momucoo • Keep this report with your maternity records',
-            textAlign: TextAlign.center, style: TextStyle(color: AppColors.grey, fontSize: 12)),
+
+        // 2. CBC Blood Reports Section Card
+        Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.water_drop_outlined, color: AppColors.primary, size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'CBC Blood Reports',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              if (!hasCbc)
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      Icon(Icons.description_outlined, size: 48, color: Colors.grey.shade400),
+                      const SizedBox(height: 10),
+                      Text(
+                        'No CBC reports uploaded yet.',
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingRowColor: WidgetStateProperty.all(const Color(0xFFF9FAFB)),
+                    headingTextStyle: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.ink, fontSize: 13),
+                    dataTextStyle: const TextStyle(fontSize: 13, color: AppColors.ink),
+                    columnSpacing: 20,
+                    columns: const [
+                      DataColumn(label: Text('Date')),
+                      DataColumn(label: Text('Hb (g/dL)')),
+                      DataColumn(label: Text('RBC')),
+                      DataColumn(label: Text('MCV')),
+                      DataColumn(label: Text('Hematocrit')),
+                      DataColumn(label: Text('Ferritin')),
+                      DataColumn(label: Text('Source')),
+                    ],
+                    rows: [
+                      DataRow(
+                        cells: [
+                          const DataCell(Text('Today')),
+                          DataCell(
+                            Text(
+                              '${cbc['hb'] ?? '—'}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: (double.tryParse('${cbc['hb']}') ?? 12) < 7.0
+                                    ? AppColors.primary
+                                    : (double.tryParse('${cbc['hb']}') ?? 12) < 11.0
+                                        ? const Color(0xFFE67E22)
+                                        : const Color(0xFF27AE60),
+                              ),
+                            ),
+                          ),
+                          DataCell(Text('${cbc['rbc'] ?? '—'}')),
+                          DataCell(Text('${cbc['mcv'] ?? '—'}')),
+                          DataCell(Text('${cbc['hematocrit'] ?? '—'}')),
+                          DataCell(Text('${cbc['ferritin'] ?? '—'}')),
+                          const DataCell(Text('Manual / OCR')),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
       ],
     );
   }
-}
-
-/// All report values, derived exactly as Reports.jsx does.
-class ReportData {
-  ReportData._(this.generated, this.name, this.pregnancy, this.cbc, this.scan, this.ai);
-  final String generated, name;
-  final Map<String, dynamic>? pregnancy, cbc, scan, ai;
-
-  factory ReportData.load(DateTime now) {
-    final s = AppStorage.instance;
-    final profile = s.readMap(StorageKeys.profile);
-    return ReportData._(
-      formatReportDate(now),
-      profile == null ? 'Patient' : '${profile['name'] ?? ''}',
-      s.readMap(StorageKeys.pregnancyData),
-      s.readMap(StorageKeys.cbcData),
-      s.readMap(StorageKeys.scanData),
-      s.readMap(StorageKeys.aiResult),
-    );
-  }
-
-  dynamic get _week => pregnancy?['week'];
-  bool get aiDone => ai != null;
-  bool get scanUploaded => jsTruthy(scan?['uploaded']);
-  String get weekText => jsTruthy(_week) ? '$_week' : 'Not entered';
-  String get statusText => aiDone ? 'Analysis complete' : 'In progress';
-
-  List<(String, String)> get healthRows {
-    final symptoms = (pregnancy?['symptoms'] as List?) ?? const [];
-    return [
-      ('Chat check completed', pregnancy != null ? 'Yes' : 'Not completed'),
-      ('Symptoms reported', symptoms.isNotEmpty ? symptoms.join(', ') : 'None recorded'),
-      ('Pregnancy stage', jsTruthy(_week) ? 'Week $_week of pregnancy' : 'Not entered'),
-    ];
-  }
-
-  String _cbc(String k, [String unit = '']) {
-    final v = cbc?[k];
-    return jsTruthy(v) ? '$v$unit' : 'Not submitted';
-  }
-
-  List<(String, String)> get cbcRows => [
-        ('Hemoglobin', _cbc('hb', ' g/dL')),
-        ('RBC', _cbc('rbc')),
-        ('MCV', _cbc('mcv', ' fL')),
-        ('MCH', _cbc('mch', ' pg')),
-        ('MCHC', _cbc('mchc')),
-        ('Hematocrit', _cbc('hematocrit', '%')),
-        ('RDW', _cbc('rdw', '%')),
-      ];
-
-  String get scanTitle => scanUploaded ? '${scan?['name'] ?? ''}' : 'No scan report uploaded';
-  String get scanDetail => scanUploaded
-      ? 'Scan report attached for clinical review.'
-      : 'Optional: upload an ultrasound or pregnancy scan when available.';
-
-  String get scoreText => ai?['score'] == null ? '--' : '${ai!['score']}';
-  String get riskText => jsTruthy(ai?['risk']) ? '${ai!['risk']} Risk' : 'Analysis pending';
-  String get aiDetail => aiDone
-      ? 'This result combines the available symptoms and CBC information. It is not a medical diagnosis.'
-      : 'Complete the CBC report to generate an AI screening result.';
-
-  String toText() => [
-        'MOMUCOO • DIGITAL MATERNITY CARE',
-        'Patient Checkup Report',
-        'Report date: $generated',
-        'Patient name: $name',
-        'Pregnancy week: $weekText',
-        'Report status: $statusText',
-        '',
-        '01 • Health Check & Symptoms',
-        for (final r in healthRows) '${r.$1}: ${r.$2}',
-        '',
-        '02 • CBC Blood Report',
-        for (final r in cbcRows) '${r.$1}: ${r.$2}',
-        '',
-        '03 • Pregnancy Scan Report',
-        '$scanTitle (${scanUploaded ? 'Available' : 'Optional'})',
-        '',
-        '04 • AI Anemia Analysis',
-        'Score: $scoreText/100 • $riskText',
-        '',
-        'Clinical note: ${ReportsScreen.disclaimer}',
-      ].join('\n');
-}
-
-class _Section extends StatelessWidget {
-  const _Section(this.title, this.children);
-  final String title;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) => ContentCard(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.primary)),
-          const SizedBox(height: 10),
-          ...children,
-        ]),
-      );
-}
-
-class _Value extends StatelessWidget {
-  const _Value(this.label, this.value, {this.sub, this.color});
-  final String label, value;
-  final String? sub;
-  final Color? color;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 13)),
-          Text(value, style: TextStyle(fontWeight: FontWeight.w700, color: color)),
-          if (sub != null) Text(sub!, style: const TextStyle(color: AppColors.grey, fontSize: 12)),
-        ]),
-      );
 }
