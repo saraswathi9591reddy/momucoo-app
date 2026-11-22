@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -36,7 +35,7 @@ const _fieldKeys = [
 
 class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
   final _ctrl = {for (final f in _fieldKeys) f.$1: TextEditingController()};
-  String _cbcFileName = '', _scanName = '', _reportStatus = '', _scanStatus = '';
+  String _cbcFileName = '', _scanName = '', _reportStatus = '';
   Map<String, String> _scanData = {};
   bool _reading = false;
   RiskResult? _inlineResult;
@@ -102,7 +101,7 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
     }
   }
 
-  Future<void> _readScanReport() async {
+  Future<void> readScanReport() async {
     final src = await _chooseSource();
     if (src == null) return;
     final img = await widget.ocr.pick(src);
@@ -110,34 +109,26 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
     setState(() {
       _scanName = img?.name ?? '';
       _scanData = {};
-      _scanStatus = '';
       _inlineResult = null;
     });
     if (img == null) return;
     setState(() {
       _reading = true;
-      _scanStatus = LocalizationService.tr('reading_scan');
     });
     try {
       final values = extractScanValues(await widget.ocr.recognize(img.path));
       if (!mounted) return;
       setState(() {
         _scanData = values;
-        _scanStatus = values.isNotEmpty
-            ? LocalizationService.tr('scan_recognized')
-            : LocalizationService.tr('scan_no_values');
       });
     } catch (_) {
-      if (mounted) {
-        setState(() => _scanStatus = LocalizationService.tr('scan_cant_read'));
-      }
+      // ignore
     } finally {
       if (mounted) setState(() => _reading = false);
     }
   }
 
   Future<void> _analyze() async {
-    final week = getGestationalWeek(_scanData['gestationalAge']);
     final cbcMap = {for (final e in _ctrl.entries) e.key: e.value.text};
     final s = AppStorage.instance;
     await s.saveCbcData(CbcData(cbcMap));
@@ -162,7 +153,7 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<AppLanguage>(
       valueListenable: LocalizationService.currentLanguage,
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         final L = LocalizationService.tr;
 
         return PageLayout(
