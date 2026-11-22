@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/localization.dart';
-import '../core/models/models.dart';
 import '../core/storage.dart';
 import '../core/theme.dart';
 import '../router.dart';

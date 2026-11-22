@@ -49,20 +49,24 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
   }
 
   Future<ImageSource?> _chooseSource() => showModalBottomSheet<ImageSource>(
-        context: context,
-        builder: (ctx) => SafeArea(
-          child: Wrap(children: [
-            ListTile(
-                leading: const Icon(Icons.photo_camera_outlined),
-                title: Text(LocalizationService.tr('take_photo')),
-                onTap: () => Navigator.pop(ctx, ImageSource.camera)),
-            ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
-                title: Text(LocalizationService.tr('choose_gallery')),
-                onTap: () => Navigator.pop(ctx, ImageSource.gallery)),
-          ]),
-        ),
-      );
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Wrap(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.photo_camera_outlined),
+            title: Text(LocalizationService.tr('take_photo')),
+            onTap: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_library_outlined),
+            title: Text(LocalizationService.tr('choose_gallery')),
+            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+        ],
+      ),
+    ),
+  );
 
   Future<void> _readCbcReport() async {
     final src = await _chooseSource();
@@ -78,7 +82,9 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
       }
     });
     if (img == null) {
-      setState(() => _reportStatus = LocalizationService.tr('upload_jpg_png_prompt'));
+      setState(
+        () => _reportStatus = LocalizationService.tr('upload_jpg_png_prompt'),
+      );
       return;
     }
     setState(() {
@@ -95,7 +101,8 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
             : LocalizationService.tr('no_cbc_found');
       });
     } catch (_) {
-      if (mounted) setState(() => _reportStatus = LocalizationService.tr('cbc_cant_read'));
+      if (mounted)
+        setState(() => _reportStatus = LocalizationService.tr('cbc_cant_read'));
     } finally {
       if (mounted) setState(() => _reading = false);
     }
@@ -132,11 +139,13 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
     final cbcMap = {for (final e in _ctrl.entries) e.key: e.value.text};
     final s = AppStorage.instance;
     await s.saveCbcData(CbcData(cbcMap));
-    await s.saveScanData(ScanData(
-      name: _scanName,
-      uploaded: _scanData.isNotEmpty,
-      values: _scanData,
-    ));
+    await s.saveScanData(
+      ScanData(
+        name: _scanName,
+        uploaded: _scanData.isNotEmpty,
+        values: _scanData,
+      ),
+    );
 
     final res = RiskEngine.evaluate(
       cbc: cbcMap,
@@ -176,15 +185,29 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                   OutlinedButton.icon(
                     onPressed: _reading ? null : _readCbcReport,
                     icon: const Icon(Icons.document_scanner_outlined),
-                    label: Text(_reading ? L('reading') : L('upload_cbc_report')),
+                    label: Text(
+                      _reading ? L('reading') : L('upload_cbc_report'),
+                    ),
                   ),
                   if (_cbcFileName.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text('File: $_cbcFileName', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                    Text(
+                      'File: $_cbcFileName',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                   if (_reportStatus.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(_reportStatus, style: const TextStyle(color: AppColors.inkSoft, fontSize: 13)),
+                    Text(
+                      _reportStatus,
+                      style: const TextStyle(
+                        color: AppColors.inkSoft,
+                        fontSize: 13,
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -201,14 +224,26 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                       padding: const EdgeInsets.only(bottom: 12),
                       child: TextFormField(
                         controller: _ctrl[f.$1],
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         decoration: InputDecoration(
                           labelText: L(f.$2),
                           suffixText: f.$3,
                           filled: true,
                           fillColor: const Color(0xFFFCF9F7),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5D4CE))),
-                          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: Color(0xFFE5D4CE))),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE5D4CE),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE5D4CE),
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -236,8 +271,8 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                         color: _inlineResult!.risk == 'Low'
                             ? const Color(0xFFD4EFDF)
                             : _inlineResult!.risk == 'Moderate'
-                                ? const Color(0xFFFEF9E7)
-                                : const Color(0xFFFDEDEC),
+                            ? const Color(0xFFFEF9E7)
+                            : const Color(0xFFFDEDEC),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -253,21 +288,30 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                                   color: _inlineResult!.risk == 'Low'
                                       ? AppColors.success
                                       : _inlineResult!.risk == 'Moderate'
-                                          ? Colors.orange.shade800
-                                          : AppColors.primary,
+                                      ? Colors.orange.shade800
+                                      : AppColors.primary,
                                 ),
                               ),
                               const Spacer(),
                               Text(
                                 '${L('score')}: ${_inlineResult!.score}/100',
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            _inlineResult!.anemiaLikely ? L('anemia_detected') : L('no_anemia_detected'),
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.ink),
+                            _inlineResult!.anemiaLikely
+                                ? L('anemia_detected')
+                                : L('no_anemia_detected'),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.ink,
+                            ),
                           ),
                         ],
                       ),
@@ -281,7 +325,9 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.all(14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     ),
                   ],
