@@ -100,6 +100,10 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
             ? '${LocalizationService.tr('copied_values')} ${values.length} ${LocalizationService.tr('values_tap_analyze')}'
             : LocalizationService.tr('no_cbc_found');
       });
+      // Auto-analyze immediately if at least one value was detected!
+      if (values.isNotEmpty) {
+        await _analyze();
+      }
     } catch (_) {
       if (mounted)
         setState(() => _reportStatus = LocalizationService.tr('cbc_cant_read'));
@@ -209,6 +213,28 @@ class _CBCAnalysisScreenState extends State<CBCAnalysisScreen> {
                       ),
                     ),
                   ],
+                  const SizedBox(height: 12),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text(
+                    LocalizationService.tr('ultrasound_scan_report'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    LocalizationService.tr('scan_ocr_desc'),
+                    style: const TextStyle(color: AppColors.inkSoft, fontSize: 12),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _reading ? null : readScanReport,
+                    icon: const Icon(Icons.scanner_outlined),
+                    label: Text(
+                      _scanName.isNotEmpty
+                          ? '${LocalizationService.tr('scan_selected')}: $_scanName'
+                          : LocalizationService.tr('upload_scan_report'),
+                    ),
+                  ),
                 ],
               ),
             ),
