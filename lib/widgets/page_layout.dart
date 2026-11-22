@@ -63,7 +63,10 @@ class PageLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pageIcon = _getPageIcon(title);
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: LocalizationService.currentLanguage,
+      builder: (context, _, __) {
+        final pageIcon = _getPageIcon(title);
     final isEmergency = title.toLowerCase().contains('emergency') || title.contains('ತುರ್ತು') || title.contains('అత్యవసర') || title.contains('आपात');
     final nextScreen = activePath != null ? _getNextScreen(activePath!) : null;
 
@@ -233,6 +236,8 @@ class PageLayout extends StatelessWidget {
         ),
       ),
     );
+    },
+  );
   }
 }
 
@@ -460,6 +465,8 @@ class MomucooDrawer extends StatelessWidget {
         ),
       ),
     );
+    },
+  );
   }
 }
 

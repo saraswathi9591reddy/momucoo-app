@@ -51,30 +51,55 @@ class RiskEngine {
     final hct = jsNumber(cbc['hematocrit']);
     final rbc = jsNumber(cbc['rbc']);
 
-    final anemiaLikely = hb > 0 &&
-        (hb < 11 || (mcv > 0 && mcv < 80) || (mch > 0 && mch < 27) || (hct > 0 && hct < 33) || (rbc > 0 && rbc < 3.8));
+    final anemiaLikely = (hb > 0 && hb < 11) ||
+        (mcv > 0 && mcv < 80) ||
+        (mch > 0 && mch < 27) ||
+        (hct > 0 && hct < 33) ||
+        (rbc > 0 && rbc < 3.8);
     final anemiaStatus = anemiaLikely ? 'Anemia likely' : 'No anemia detected';
 
     var score = 0;
     final factors = <String>[];
 
-    if (hb > 0 && hb < 11) {
-      score += 35;
-      factors.add('Hemoglobin is below the usual pregnancy reference range.');
-    } else if (hb > 0) {
-      factors.add('Hemoglobin is within a healthier pregnancy range.');
+    if (hb > 0) {
+      if (hb < 11) {
+        score += 35;
+        factors.add('Hemoglobin ($hb g/dL) is below the usual pregnancy reference range.');
+      } else {
+        factors.add('Hemoglobin ($hb g/dL) is within a healthier pregnancy range.');
+      }
     }
-    if (mcv > 0 && mcv < 80) {
-      score += 20;
-      factors.add('MCV is low, which can support a microcytic anemia pattern.');
+    if (mcv > 0) {
+      if (mcv < 80) {
+        score += 20;
+        factors.add('MCV ($mcv fL) is low, supporting microcytic anemia.');
+      } else {
+        factors.add('MCV ($mcv fL) is in normal range.');
+      }
     }
-    if (mch > 0 && mch < 27) {
-      score += 15;
-      factors.add('MCH is low.');
+    if (mch > 0) {
+      if (mch < 27) {
+        score += 15;
+        factors.add('MCH ($mch pg) is low.');
+      } else {
+        factors.add('MCH ($mch pg) is in normal range.');
+      }
     }
-    if (hct > 0 && hct < 33) {
-      score += 10;
-      factors.add('Hematocrit is lower than expected for pregnancy.');
+    if (hct > 0) {
+      if (hct < 33) {
+        score += 10;
+        factors.add('Hematocrit ($hct %) is lower than expected for pregnancy.');
+      } else {
+        factors.add('Hematocrit ($hct %) is in normal range.');
+      }
+    }
+    if (rbc > 0) {
+      if (rbc < 3.8) {
+        score += 15;
+        factors.add('RBC count ($rbc million/µL) is low.');
+      } else {
+        factors.add('RBC count ($rbc million/µL) is in normal range.');
+      }
     }
 
     final symptomScore = symptoms.length * 5;
