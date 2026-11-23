@@ -236,6 +236,8 @@ class PageLayout extends StatelessWidget {
         ),
       ),
     );
+      },
+    );
   }
 }
 
@@ -483,11 +485,17 @@ class MomucooDrawer extends StatelessWidget {
             ListTile(leading: const Icon(Icons.sos_outlined, color: AppColors.primary), title: Text(LocalizationService.tr('emergency_help'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)), onTap: () => go(Routes.emergency)),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.logout),
-              title: Text(LocalizationService.tr('logout')),
+              leading: const Icon(Icons.logout, color: AppColors.primary),
+              title: Text(
+                LocalizationService.tr('logout'),
+                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+              ),
               onTap: () async {
                 await AppStorage.instance.setLoggedIn(false);
-                if (context.mounted) go(Routes.home);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  context.go(Routes.login);
+                }
               },
             ),
           ],
