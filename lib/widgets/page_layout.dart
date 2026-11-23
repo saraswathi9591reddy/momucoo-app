@@ -63,7 +63,10 @@ class PageLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pageIcon = _getPageIcon(title);
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: LocalizationService.currentLanguage,
+      builder: (context, _, __) {
+        final pageIcon = _getPageIcon(title);
     final isEmergency = title.toLowerCase().contains('emergency') || title.contains('ತುರ್ತು') || title.contains('అత్యవసర') || title.contains('आपात');
     final nextScreen = activePath != null ? _getNextScreen(activePath!) : null;
 
@@ -306,6 +309,7 @@ class MomucooAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) => AppBar(
+        titleSpacing: 0,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -317,8 +321,18 @@ class MomucooAppBar extends StatelessWidget implements PreferredSizeWidget {
               errorBuilder: (context, error, stackTrace) =>
                   const Text('🩸', style: TextStyle(fontSize: 20)),
             ),
-            const SizedBox(width: 8),
-            Text(LocalizationService.tr('app_title'), style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                LocalizationService.tr('app_title'),
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                  fontSize: 18,
+                ),
+              ),
+            ),
           ],
         ),
         actions: [
@@ -326,17 +340,29 @@ class MomucooAppBar extends StatelessWidget implements PreferredSizeWidget {
           ValueListenableBuilder<AppLanguage>(
             valueListenable: LocalizationService.currentLanguage,
             builder: (context, lang, _) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: ActionChip(
-                backgroundColor: AppColors.peachBg,
-                side: const BorderSide(color: Color(0xFFF1E4DF)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                avatar: const Icon(Icons.translate_rounded, size: 16, color: AppColors.primary),
-                label: Text(
-                  lang.nativeName,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primary),
+              padding: const EdgeInsets.only(right: 4),
+              child: InkWell(
+                onTap: () => _showLanguageSelector(context),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.peachBg,
+                    border: Border.all(color: const Color(0xFFF1E4DF)),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.translate_rounded, size: 14, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        lang.nativeName,
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.primary),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () => _showLanguageSelector(context),
               ),
             ),
           ),
@@ -345,12 +371,20 @@ class MomucooAppBar extends StatelessWidget implements PreferredSizeWidget {
             builder: (context, _, _) {
               final p = AppStorage.instance.profileOr('Saraswathi Reddy');
               return Padding(
-                padding: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.only(right: 8, left: 2),
                 child: GestureDetector(
                   onTap: () => context.go(Routes.profile),
                   child: CircleAvatar(
+                    radius: 16,
                     backgroundColor: AppColors.peachBg,
-                    child: Text(p.initials, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                    child: Text(
+                      p.initials,
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ),
               );

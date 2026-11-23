@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/localization.dart';
 import '../core/theme.dart';
@@ -34,6 +35,8 @@ class _RemindersScreenState extends State<RemindersScreen> {
   }
 
   void _showNotification(String title, String body) {
+    HapticFeedback.heavyImpact();
+    SystemSound.play(SystemSoundType.alert);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -80,8 +83,44 @@ class _RemindersScreenState extends State<RemindersScreen> {
   }
 
   Future<void> _pickTime() async {
-    final picked = await showTimePicker(context: context, initialTime: _selectedTime);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+      initialEntryMode: TimePickerEntryMode.dial,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(
+                primary: AppColors.primary,
+                onPrimary: Colors.white,
+                surface: Colors.white,
+                onSurface: AppColors.ink,
+              ),
+            ),
+            child: child ?? const SizedBox(),
+          ),
+        );
+      },
+    );
     if (picked != null) setState(() => _selectedTime = picked);
+  }
+
+  Widget _quickTimeChip(String label, TimeOfDay time, String emoji) {
+    final isSelected = _selectedTime.hour == time.hour && _selectedTime.minute == time.minute;
+    return ChoiceChip(
+      avatar: Text(emoji, style: const TextStyle(fontSize: 12)),
+      label: Text(label, style: TextStyle(fontSize: 11, fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500)),
+      selected: isSelected,
+      selectedColor: AppColors.primary.withOpacity(0.18),
+      backgroundColor: Colors.grey.shade100,
+      side: BorderSide(color: isSelected ? AppColors.primary : AppColors.border),
+      onSelected: (_) {
+        HapticFeedback.selectionClick();
+        setState(() => _selectedTime = time);
+      },
+    );
   }
 
   void _addReminder() {
@@ -168,6 +207,24 @@ class _RemindersScreenState extends State<RemindersScreen> {
                       fillColor: AppColors.peachBg,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.border)),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Quick Time Preset Chips
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _quickTimeChip('08:00 AM', const TimeOfDay(hour: 8, minute: 0), '🌅'),
+                        const SizedBox(width: 6),
+                        _quickTimeChip('11:00 AM', const TimeOfDay(hour: 11, minute: 0), '💧'),
+                        const SizedBox(width: 6),
+                        _quickTimeChip('02:00 PM', const TimeOfDay(hour: 14, minute: 0), '🍱'),
+                        const SizedBox(width: 6),
+                        _quickTimeChip('06:00 PM', const TimeOfDay(hour: 18, minute: 0), '💊'),
+                        const SizedBox(width: 6),
+                        _quickTimeChip('09:00 PM', const TimeOfDay(hour: 21, minute: 0), '🌙'),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 10),
