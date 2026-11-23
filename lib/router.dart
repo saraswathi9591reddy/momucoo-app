@@ -57,11 +57,16 @@ class Routes {
   static const public = {Routes.home, Routes.login, Routes.register};
 }
 
-/// Session redirect. The web app only sets/removes `momucooSession` (no guard);
-/// mobile enforces it: protected routes need a session, and a logged-in user
-/// opening /login or /register goes to /dashboard. Home ("/") stays public.
+/// Session redirect.
+/// If user is NOT logged in and tries to go to protected route, send to /login.
+/// If user IS logged in and tries to open /login or /register, send to /dashboard.
 String? sessionRedirect(String location, bool loggedIn) {
-  // Opening the app directly lands on the Dashboard to match the web app
+  if (!loggedIn) {
+    if (location == Routes.login || location == Routes.register) {
+      return null;
+    }
+    return Routes.login;
+  }
   if (location == Routes.home || location == Routes.login || location == Routes.register) {
     return Routes.dashboard;
   }
@@ -69,7 +74,8 @@ String? sessionRedirect(String location, bool loggedIn) {
 }
 
 GoRouter buildRouter() => GoRouter(
-      initialLocation: Routes.dashboard,
+      initialLocation: AppStorage.instance.isLoggedIn ? Routes.dashboard : Routes.login,
+      refreshListenable: AppStorage.sessionNotifier,
       redirect: (context, state) => sessionRedirect(state.matchedLocation, AppStorage.instance.isLoggedIn),
       // Web: <Route path="*" element={<Dashboard />} />
       errorBuilder: (_, _) => const DashboardScreen(),

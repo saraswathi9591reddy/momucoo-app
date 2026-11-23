@@ -28,7 +28,12 @@ class AppStorage {
   /// Bumped on profile writes; replaces the web `momucoo-profile-updated` event.
   static final ValueNotifier<int> profileChanged = ValueNotifier(0);
 
-  static Future<AppStorage> init() async => _instance = AppStorage._(await SharedPreferences.getInstance());
+  static Future<AppStorage> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    _instance = AppStorage._(prefs);
+    sessionNotifier.value = _instance!.isLoggedIn;
+    return _instance!;
+  }
 
   @visibleForTesting
   static void resetForTest() => _instance = null;
@@ -69,9 +74,17 @@ class AppStorage {
   Future<void> saveAccount(Account a) => writeJson(StorageKeys.account, a.toJson());
 
   // ---- session ----
+  static final ValueNotifier<bool> sessionNotifier = ValueNotifier<bool>(false);
+
   bool get isLoggedIn => Session.fromRaw(getRaw(StorageKeys.session)).loggedIn;
-  Future<void> setLoggedIn(bool v) =>
-      v ? setRaw(StorageKeys.session, Session.loggedInValue) : remove(StorageKeys.session);
+  Future<void> setLoggedIn(bool v) async {
+    if (v) {
+      await setRaw(StorageKeys.session, Session.loggedInValue);
+    } else {
+      await remove(StorageKeys.session);
+    }
+    sessionNotifier.value = v;
+  }
 
   // ---- health data ----
   CbcData? get cbcData => _map(StorageKeys.cbcData, CbcData.fromJson);

@@ -491,9 +491,9 @@ class MomucooDrawer extends StatelessWidget {
                 style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
               ),
               onTap: () async {
+                Navigator.of(context).pop(); // Close drawer first
                 await AppStorage.instance.setLoggedIn(false);
                 if (context.mounted) {
-                  Navigator.of(context).pop();
                   context.go(Routes.login);
                 }
               },
